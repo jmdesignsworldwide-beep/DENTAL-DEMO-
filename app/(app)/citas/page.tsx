@@ -6,6 +6,7 @@ import {
   listDentists,
   listPatientsBasic,
 } from "@/lib/appointments";
+import { listCatalog } from "@/lib/treatments";
 import {
   monthMatrix,
   weekDays,
@@ -57,10 +58,11 @@ async function CalendarData({ searchParams }: { searchParams: SearchParams }) {
 
   const { from, to } = rango(view, anchor);
 
-  const [citas, dentists, patients] = await Promise.all([
+  const [citas, dentists, patients, catalog] = await Promise.all([
     getAppointmentsRange(from, to, dentista || undefined),
     listDentists(),
     listPatientsBasic(),
+    listCatalog(),
   ]);
 
   return (
@@ -70,6 +72,7 @@ async function CalendarData({ searchParams }: { searchParams: SearchParams }) {
       citas={citas}
       dentists={dentists}
       patients={patients}
+      catalog={catalog}
       dentistaFilter={dentista}
       canWrite={canWrite}
     />

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AppointmentRow, PatientBasic } from "@/lib/appointments";
+import type { CatalogItem } from "@/lib/treatments";
 import {
   addDays,
   addMonths,
@@ -38,6 +39,7 @@ export function CalendarClient({
   citas,
   dentists,
   patients,
+  catalog,
   dentistaFilter,
   canWrite,
 }: {
@@ -46,6 +48,7 @@ export function CalendarClient({
   citas: AppointmentRow[];
   dentists: string[];
   patients: PatientBasic[];
+  catalog: CatalogItem[];
   dentistaFilter: string;
   canWrite: boolean;
 }) {
@@ -240,6 +243,7 @@ export function CalendarClient({
           onSuccess={refresh}
           patients={patients}
           dentists={dentists}
+          catalog={catalog}
           prefill={createPrefill}
         />
       )}
@@ -250,6 +254,7 @@ export function CalendarClient({
           onSuccess={refresh}
           patients={patients}
           dentists={dentists}
+          catalog={catalog}
           cita={editCita}
         />
       )}

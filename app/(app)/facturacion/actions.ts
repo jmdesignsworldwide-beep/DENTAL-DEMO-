@@ -16,6 +16,7 @@ export interface NuevoItem {
   cantidad: number;
   precio_unitario: number;
   descuento_item: number;
+  tratamiento_id?: string | null;
 }
 export interface NuevaFactura {
   patientId: string;
@@ -88,6 +89,8 @@ export async function createInvoice(
 
   const itemRows = items.map((i) => ({
     invoice_id: inv.id,
+    tratamiento_id:
+      i.tratamiento_id && /^[0-9a-f-]{36}$/i.test(i.tratamiento_id) ? i.tratamiento_id : null,
     descripcion: i.descripcion.slice(0, 200),
     cantidad: i.cantidad,
     precio_unitario: money(i.precio_unitario),

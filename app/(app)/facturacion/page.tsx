@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { requireRole } from "@/lib/auth";
 import { listInvoices } from "@/lib/billing";
 import { listPatientsBasic } from "@/lib/appointments";
+import { listCatalog } from "@/lib/treatments";
 import { BillingClient } from "./billing-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { InvoiceEstado, MetodoPago } from "./estado-config";
@@ -22,7 +23,7 @@ async function Data({ searchParams }: { searchParams: SearchParams }) {
   const hasta = one(searchParams.hasta) ?? "";
   const page = Math.max(1, parseInt(one(searchParams.page) ?? "1", 10) || 1);
 
-  const [res, patients] = await Promise.all([
+  const [res, patients, catalog] = await Promise.all([
     listInvoices({
       q,
       estado: estado as InvoiceEstado | "todos",
@@ -32,6 +33,7 @@ async function Data({ searchParams }: { searchParams: SearchParams }) {
       page,
     }),
     listPatientsBasic(),
+    listCatalog(),
   ]);
 
   return (
@@ -47,6 +49,7 @@ async function Data({ searchParams }: { searchParams: SearchParams }) {
       desde={desde}
       hasta={hasta}
       patients={patients}
+      catalog={catalog}
       canWrite
     />
   );

@@ -37,6 +37,7 @@ const ACTIONS: Action[] = [
     icon: Stethoscope,
     accent: "from-gold-light to-gold-dark shadow-glow-gold",
     tanda: 9,
+    href: "/tratamientos",
   },
 ];
 

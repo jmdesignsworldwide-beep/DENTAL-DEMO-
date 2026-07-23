@@ -57,6 +57,7 @@ async function haySolape(
 }
 
 function parseCita(fd: FormData) {
+  const tratId = s(fd, "tratamiento_id");
   return {
     patient_id: s(fd, "patient_id"),
     dentista_nombre: s(fd, "dentista_nombre") || null,
@@ -64,6 +65,7 @@ function parseCita(fd: FormData) {
     hora: s(fd, "hora"),
     duracion_min: Math.max(10, Math.min(480, parseInt(s(fd, "duracion_min") || "30", 10) || 30)),
     tratamiento: s(fd, "tratamiento"),
+    tratamiento_id: /^[0-9a-f-]{36}$/i.test(tratId) ? tratId : null,
     estado: (s(fd, "estado") || "pendiente") as CitaEstado,
     notas: s(fd, "notas") || null,
   };
@@ -112,6 +114,7 @@ export async function createAppointment(
       hora: c.hora,
       duracion_min: c.duracion_min,
       tratamiento: c.tratamiento,
+      tratamiento_id: c.tratamiento_id,
       estado: c.estado,
       notas: c.notas,
       created_by: user.id,
@@ -166,6 +169,7 @@ export async function updateAppointment(
       hora: c.hora,
       duracion_min: c.duracion_min,
       tratamiento: c.tratamiento,
+      tratamiento_id: c.tratamiento_id,
       estado: c.estado,
       notas: c.notas,
     })

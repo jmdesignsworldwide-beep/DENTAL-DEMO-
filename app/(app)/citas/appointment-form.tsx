@@ -8,21 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea, Field } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import type { AppointmentRow, PatientBasic } from "@/lib/appointments";
+import type { CatalogItem } from "@/lib/treatments";
 import { createAppointment, updateAppointment, quickCreatePatient, type CitaFormState } from "./actions";
 import { ESTADO_CITA, TRANSICIONES } from "./estado-config";
 
-const TRATAMIENTOS = [
-  "Limpieza dental",
-  "Profilaxis dental",
-  "Resina compuesta",
-  "Endodoncia",
-  "Extracción simple",
-  "Corona de porcelana",
-  "Blanqueamiento",
-  "Ortodoncia (ajuste)",
-  "Implante (evaluación)",
-  "Sellante dental",
-];
 const DURACIONES = [30, 45, 60, 90, 120];
 
 function Submit({ edit }: { edit: boolean }) {
@@ -169,6 +158,7 @@ export function AppointmentFormModal({
   onSuccess,
   patients,
   dentists,
+  catalog,
   prefill,
   cita,
 }: {
@@ -177,6 +167,7 @@ export function AppointmentFormModal({
   onSuccess: () => void;
   patients: PatientBasic[];
   dentists: string[];
+  catalog: CatalogItem[];
   prefill?: { fecha?: string; hora?: string } | null;
   cita?: AppointmentRow | null;
 }) {
@@ -186,6 +177,9 @@ export function AppointmentFormModal({
   const [patient, setPatient] = React.useState<{ id: string; nombre: string } | null>(
     cita ? { id: cita.patient_id, nombre: cita.paciente } : null,
   );
+  const [tratamiento, setTratamiento] = React.useState(cita?.tratamiento ?? "");
+  const [tratamientoId, setTratamientoId] = React.useState("");
+  const [duracion, setDuracion] = React.useState(String(cita?.duracion_min ?? 30));
 
   React.useEffect(() => {
     if (state.ok) onSuccess();
@@ -206,6 +200,8 @@ export function AppointmentFormModal({
       <form action={formAction} className="space-y-4">
         {edit && <input type="hidden" name="id" value={cita!.id} />}
         <input type="hidden" name="patient_id" value={patient?.id ?? ""} />
+        <input type="hidden" name="tratamiento" value={tratamiento} />
+        <input type="hidden" name="tratamiento_id" value={tratamientoId} />
 
         {state.error && (
           <div className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3 text-sm font-medium text-danger">
@@ -220,16 +216,27 @@ export function AppointmentFormModal({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Tratamiento" htmlFor="c-trat" required error={fe.tratamiento}>
-            <Select id="c-trat" name="tratamiento" defaultValue={cita?.tratamiento ?? ""}>
+            <Select
+              id="c-trat"
+              value={tratamiento}
+              error={!!fe.tratamiento}
+              onChange={(e) => {
+                const val = e.target.value;
+                setTratamiento(val);
+                const item = catalog.find((c) => c.nombre === val);
+                setTratamientoId(item?.id ?? "");
+                if (item) setDuracion(String(item.duracion_min));
+              }}
+            >
               <option value="" disabled>
                 Seleccionar…
               </option>
-              {TRATAMIENTOS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {catalog.map((c) => (
+                <option key={c.id} value={c.nombre}>
+                  {c.nombre}
                 </option>
               ))}
-              {cita && !TRATAMIENTOS.includes(cita.tratamiento) && (
+              {cita && !catalog.some((c) => c.nombre === cita.tratamiento) && (
                 <option value={cita.tratamiento}>{cita.tratamiento}</option>
               )}
             </Select>
@@ -266,12 +273,14 @@ export function AppointmentFormModal({
             />
           </Field>
           <Field label="Duración" htmlFor="c-dur">
-            <Select id="c-dur" name="duracion_min" defaultValue={String(cita?.duracion_min ?? 30)}>
-              {DURACIONES.map((d) => (
-                <option key={d} value={d}>
-                  {d} min
-                </option>
-              ))}
+            <Select id="c-dur" name="duracion_min" value={duracion} onChange={(e) => setDuracion(e.target.value)}>
+              {Array.from(new Set([...DURACIONES, parseInt(duracion) || 30]))
+                .sort((a, b) => a - b)
+                .map((d) => (
+                  <option key={d} value={d}>
+                    {d} min
+                  </option>
+                ))}
             </Select>
           </Field>
           <Field label="Estado" htmlFor="c-estado">
