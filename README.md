@@ -181,8 +181,17 @@ Incorporada en todo, desde la migración cero:
 ### Nota de dependencias
 
 Se fijó **Next.js 14.2.35** (parche de la vulnerabilidad crítica de Server
-Actions). Advisories restantes de Next se cierran solo en Next 16 (cambio
-mayor) — pendiente de decisión para una tanda de mantenimiento.
+Actions). Advisories restantes de Next se cierran solo en Next 15+ (cambio
+mayor: `params`/`searchParams`/`cookies` asíncronos) — pendiente de decisión
+para una tanda de mantenimiento.
+
+### Auditoría de seguridad
+
+La verificación completa Fort Knox punto por punto, con evidencia, está en
+[`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md): 32/32 tablas con RLS+FORCE,
+autorización en servidor, storage privado con signed URLs, inmutabilidad por
+triggers, y el detalle de lo que la dueña debe probar contra la instancia en
+vivo (Security Advisor, revocación del PAT, ataques por API con la anon key).
 
 ## Deploy a Vercel
 
