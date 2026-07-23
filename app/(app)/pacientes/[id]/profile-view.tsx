@@ -365,7 +365,9 @@ export function ProfileView({
                         ? `/historia/${patient.id}`
                         : m.label === "Odontograma" && canSeeOdonto
                           ? `/odontograma/${patient.id}`
-                          : null;
+                          : m.label === "Facturas" && canSeeIncome
+                            ? `/facturacion?q=${encodeURIComponent(patient.nombre)}`
+                            : null;
                     if (href) {
                       return (
                         <Link
