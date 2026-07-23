@@ -89,6 +89,9 @@ supabase/
    - Catálogo: aplica `0010_treatments.sql`. Siembra 41 tratamientos reales
      en las 8 categorías y liga las FKs opcionales de citas y facturas. Solo el
      owner administra precios; el resto del personal lo consulta.
+   - Inventario: aplica `0011_inventory.sql`. Proveedores, 55 materiales
+     (algunos bajo mínimo para que las alertas se vean vivas), movimientos
+     inmutables y recetas de consumo por tratamiento.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
