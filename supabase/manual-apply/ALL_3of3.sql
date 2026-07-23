@@ -1,4 +1,4 @@
--- APLICACIÓN MANUAL — CORRIDA 3 de 3 (0009 → 0016). Corre después del bloque 2.
+-- APLICACIÓN MANUAL — CORRIDA 3 de 3 (0009 → 0016).
 
 -- ─── 0009_billing.sql ───
 -- ══════════════════════════════════════════════════════════════════════
@@ -1265,6 +1265,7 @@ grant select, update on public.ncf_sequences to authenticated;
 -- Red de seguridad: buckets privados
 insert into storage.buckets (id, name, public) values ('patient-photos','patient-photos',false) on conflict (id) do nothing;
 insert into storage.buckets (id, name, public) values ('clinical-files','clinical-files',false) on conflict (id) do nothing;
--- ⚠️ ACTIVAR TU OWNER — cambia el correo/nombre:
-update public.profiles set rol='owner', activo=true, nombre='Dra. Nombre Apellido'
- where id = (select id from auth.users where email='TU-CORREO@ejemplo.com');
+-- ⚠️ ACTIVAR TU OWNER (crea + activa el perfil de tu usuario existente):
+insert into public.profiles (id, nombre, rol, activo)
+select id, 'Dra. Nombre Apellido', 'owner', true from auth.users where email='TU-CORREO@ejemplo.com'
+on conflict (id) do update set rol='owner', activo=true, nombre=excluded.nombre;

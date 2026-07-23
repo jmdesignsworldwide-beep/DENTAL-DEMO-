@@ -1,4 +1,4 @@
--- APLICACIÓN MANUAL — CORRIDA 1 de 3 (0000 → 0003). Pega y Run. Debe terminar sin error antes del bloque 2.
+-- APLICACIÓN MANUAL — CORRIDA 1 de 3 (0000 → 0003).
 
 -- ─── 0000_init.sql ───
 -- ══════════════════════════════════════════════════════════════════════
