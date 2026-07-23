@@ -1,10 +1,6 @@
--- ══════════════════════════════════════════════════════════════════
---  APLICACIÓN MANUAL — CORRIDA 2 de 3   (migraciones 0004 → 0008)
---  Corre esto DESPUÉS de que la corrida 1 haya terminado sin error.
---  (El enum de 0008 se confirma aquí; 0009 lo usa en la corrida 3.)
--- ══════════════════════════════════════════════════════════════════
+-- APLICACIÓN MANUAL — CORRIDA 2 de 3 (0004 → 0008).
 
--- ─────────── 0004_appointments.sql ───────────
+-- ─── 0004_appointments.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 4 — Citas y Calendario (parte 2/2)
 --  Amplía appointments, añade anti-solapamiento por odontólogo, políticas
@@ -109,6 +105,10 @@ slots as (select * from generate_series(0, 2) as s(n)),
 days as (
   select (current_date - 28 + off)::date as f
   from generate_series(0, 42) as off
+  -- Excluye los días que 0001 siembra a mano (hoy..+6). Así la rejilla y las
+  -- citas hechas a mano nunca comparten día para un mismo odontólogo y no se
+  -- pueden solapar (respeta appointments_no_overlap en cualquier fecha).
+  where (current_date - 28 + off)::date not between current_date and current_date + 6
 )
 insert into public.appointments
   (patient_id, dentista_nombre, fecha, hora, duracion_min, tratamiento, estado)
@@ -139,7 +139,7 @@ cross join slots
 where extract(dow from d.f) <> 0;  -- sin domingos
 
 
--- ─────────── 0005_clinical.sql ───────────
+-- ─── 0005_clinical.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 5 — Historia Clínica
 --  Expediente clínico por visita. Inmutable una vez FIRMADO: las
@@ -286,7 +286,8 @@ end $$;
 --  SEED — historias clínicas para 15 pacientes, varias visitas por meses
 -- ══════════════════════════════════════════════════════════════════════
 with pac as (
-  select unnest(array[
+  select p.id, p.pidx
+  from unnest(array[
     '00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002',
     '00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000004',
     '00000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000006',
@@ -341,10 +342,10 @@ select
   ])[1 + ((pac.pidx * 2 + v.n) % 6)],
   (current_date - ((v.n - 1) * 45 + (pac.pidx * 2))::int + 180),
   true
-from pac cross join visitas;
+from pac cross join visitas as v;
 
 
--- ─────────── 0006_odontogram.sql ───────────
+-- ─── 0006_odontogram.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 6 — Odontograma interactivo
 --  Estado dental por pieza (FDI), historial inmutable por diente y
@@ -500,7 +501,7 @@ insert into public.odontogram_snapshots (patient_id, fecha, etiqueta, snapshot) 
      {"fdi":48,"estado":"ausente","superficies":[]}]'::jsonb);
 
 
--- ─────────── 0007_anatomy.sql ───────────
+-- ─── 0007_anatomy.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 7 — Diagrama anatómico del diente
 --  Marcas de afectación por zona anatómica (esmalte, dentina, pulpa,
@@ -608,7 +609,7 @@ from public.anatomy_marks
 where patient_id = '00000000-0000-0000-0000-000000000001';
 
 
--- ─────────── 0008_invoice_status.sql ───────────
+-- ─── 0008_invoice_status.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 8 — Facturación (parte 1/2)
 --  Añade el estado 'pagada_parcial' al enum en su PROPIA migración

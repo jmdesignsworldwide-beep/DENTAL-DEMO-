@@ -1,10 +1,6 @@
--- ══════════════════════════════════════════════════════════════════
---  APLICACIÓN MANUAL — CORRIDA 3 de 3   (migraciones 0009 → 0016)
---  Corre esto DESPUÉS de que la corrida 2 haya terminado sin error.
---  Al final: red de seguridad de buckets + activación de tu owner.
--- ══════════════════════════════════════════════════════════════════
+-- APLICACIÓN MANUAL — CORRIDA 3 de 3 (0009 → 0016).
 
--- ─────────── 0009_billing.sql ───────────
+-- ─── 0009_billing.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 8 — Facturación (parte 2/2)
 --  Facturas con NCF simulado (B01/B02), ítems, pagos y secuencias NCF.
@@ -232,7 +228,7 @@ revoke update, delete on public.invoice_items from authenticated, anon;
 revoke update, delete on public.payments      from authenticated, anon;
 
 
--- ─────────── 0010_treatments.sql ───────────
+-- ─── 0010_treatments.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 9 — Catálogo de tratamientos
 --  Alimenta el selector de citas y los ítems de factura. RLS + FORCE.
@@ -360,7 +356,7 @@ insert into public.treatments (nombre, descripcion, categoria, duracion_min, pre
 on conflict do nothing;
 
 
--- ─────────── 0011_inventory.sql ───────────
+-- ─── 0011_inventory.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 10 — Inventario de materiales
 --  Materiales, proveedores, movimientos (entrada/salida) inmutables y
@@ -605,7 +601,7 @@ join public.materials mat on mat.nombre = x.mat
 on conflict (treatment_id, material_id) do nothing;
 
 
--- ─────────── 0012_waiting_room.sql ───────────
+-- ─── 0012_waiting_room.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 12 — Sala de espera (kiosco TV)
 --  Configuración de clínica (consumida aquí y editada en T16), tokens de
@@ -710,7 +706,7 @@ insert into public.waiting_room_content (tipo, titulo, cuerpo, orden) values
 on conflict do nothing;
 
 
--- ─────────── 0013_patient_portal.sql ───────────
+-- ─── 0013_patient_portal.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 13 — Portal del Paciente (mockup móvil)
 --  Módulo visual: el portal se muestra DENTRO del sistema al personal.
@@ -891,7 +887,7 @@ from saldadas s
 where not exists (select 1 from public.payments p where p.invoice_id = s.id);
 
 
--- ─────────── 0014_staff_payroll.sql ───────────
+-- ─── 0014_staff_payroll.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 14 — Personal y Nómina
 --  Roster del equipo (perfiles, salario, comisión, horario), ausencias y
@@ -1049,7 +1045,7 @@ from (values
 on conflict (staff_id, periodo) do nothing;
 
 
--- ─────────── 0015_notifications.sql ───────────
+-- ─── 0015_notifications.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 15 — Centro de Notificaciones
 --  Feed de la clínica (visible al personal activo) con estado de lectura,
@@ -1145,7 +1141,7 @@ values
 on conflict do nothing;
 
 
--- ─────────── 0016_settings.sql ───────────
+-- ─── 0016_settings.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 16 — Configuración (control total del sistema)
 --  Amplía clinic_settings con identidad, horarios y config de citas;
@@ -1266,26 +1262,10 @@ create policy ncf_sequences_update on public.ncf_sequences
 grant select, update on public.ncf_sequences to authenticated;
 
 
-
--- ══════════════════════════════════════════════════════════════════
---  RED DE SEGURIDAD: buckets privados
---  Ya se crean en 0002/0005, pero esos bloques traen un exception handler
---  que los salta EN SILENCIO si la conexión no tiene permisos de storage.
---  Estas dos líneas fuerzan su creación y, si algo falla, lo VES (no lo tragan).
--- ══════════════════════════════════════════════════════════════════
-insert into storage.buckets (id, name, public) values ('patient-photos', 'patient-photos', false) on conflict (id) do nothing;
-insert into storage.buckets (id, name, public) values ('clinical-files',  'clinical-files',  false) on conflict (id) do nothing;
-
--- ══════════════════════════════════════════════════════════════════
---  ACTIVAR TU USUARIO OWNER
---  ⚠️ CAMBIA el correo y el nombre por los tuyos ANTES de correr.
---  Requiere que ya hayas creado tu usuario en Authentication → Users.
--- ══════════════════════════════════════════════════════════════════
-update public.profiles
-   set rol = 'owner', activo = true, nombre = 'Dra. Nombre Apellido'
- where id = (select id from auth.users where email = 'TU-CORREO@ejemplo.com');
-
--- Verificación rápida (debe devolver tu fila con rol=owner, activo=true):
--- select p.rol, p.activo, p.nombre, u.email
---   from public.profiles p join auth.users u on u.id = p.id
---  where u.email = 'TU-CORREO@ejemplo.com';
+-- Red de seguridad: buckets privados
+insert into storage.buckets (id, name, public) values ('patient-photos','patient-photos',false) on conflict (id) do nothing;
+insert into storage.buckets (id, name, public) values ('clinical-files','clinical-files',false) on conflict (id) do nothing;
+-- ⚠️ ACTIVAR TU OWNER (crea + activa el perfil de tu usuario existente):
+insert into public.profiles (id, nombre, rol, activo)
+select id, 'Dra. Nombre Apellido', 'owner', true from auth.users where email='TU-CORREO@ejemplo.com'
+on conflict (id) do update set rol='owner', activo=true, nombre=excluded.nombre;

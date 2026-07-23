@@ -102,6 +102,10 @@ slots as (select * from generate_series(0, 2) as s(n)),
 days as (
   select (current_date - 28 + off)::date as f
   from generate_series(0, 42) as off
+  -- Excluye los días que 0001 siembra a mano (hoy..+6). Así la rejilla y las
+  -- citas hechas a mano nunca comparten día para un mismo odontólogo y no se
+  -- pueden solapar (respeta appointments_no_overlap en cualquier fecha).
+  where (current_date - 28 + off)::date not between current_date and current_date + 6
 )
 insert into public.appointments
   (patient_id, dentista_nombre, fecha, hora, duracion_min, tratamiento, estado)
