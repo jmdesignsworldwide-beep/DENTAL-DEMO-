@@ -296,17 +296,21 @@ export function InventoryClient({
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Truck className="h-[18px] w-[18px] text-clinical" /> Proveedores</CardTitle></CardHeader>
           <CardContent>
-            <ul className="divide-y divide-border/60">
-              {data.suppliers.map((s) => (
-                <li key={s.id} className="py-2">
-                  <p className="text-sm font-semibold text-fg">{s.nombre}</p>
-                  <p className="flex items-center gap-2 text-xs text-muted">
-                    {s.contacto ?? ""}
-                    {s.telefono && <span className="inline-flex items-center gap-1 tabular"><Phone className="h-3 w-3" />{s.telefono}</span>}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            {data.suppliers.length === 0 ? (
+              <p className="py-2 text-sm text-muted">Sin proveedores registrados.</p>
+            ) : (
+              <ul className="divide-y divide-border/60">
+                {data.suppliers.map((s) => (
+                  <li key={s.id} className="py-2">
+                    <p className="text-sm font-semibold text-fg">{s.nombre}</p>
+                    <p className="flex items-center gap-2 text-xs text-muted">
+                      {s.contacto ?? ""}
+                      {s.telefono && <span className="inline-flex items-center gap-1 tabular"><Phone className="h-3 w-3" />{s.telefono}</span>}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
 
