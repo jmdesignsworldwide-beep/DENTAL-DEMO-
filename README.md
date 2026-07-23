@@ -110,6 +110,16 @@ supabase/
      protegido por sesión del personal) para entregarlo en el celular durante
      la demo. El teléfono lleva su propio toggle de tema, independiente del
      tema global.
+   - Personal y nómina: aplica `0014_staff_payroll.sql`. Añade `staff`
+     (roster con salario, comisión y horario), `staff_absences` y
+     `payroll_status` (estado de pago por período), todas **solo para el
+     owner** con RLS + FORCE. Siembra 7 empleados con nombres y
+     especialidades dominicanas reales; los tres odontólogos coinciden con los
+     dentistas ya sembrados en citas, así el panel de rendimiento se alimenta
+     de datos reales. La nómina (`/personal`) calcula las deducciones con la
+     normativa dominicana vigente (AFP 2.87% + SFS 3.04% e ISR por escala
+     DGII, en `lib/payroll.ts`) y emite un volante de pago imprimible en
+     `/imprimir/volante/[staffId]`.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
