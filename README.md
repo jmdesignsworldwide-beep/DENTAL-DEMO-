@@ -86,6 +86,9 @@ supabase/
      por separado, `0009_billing.sql` (NCF, ítems, pagos, secuencias). La `0009`
      amplía y completa las facturas ya sembradas (les asigna NCF e ítems). Las
      facturas emitidas son inmutables (solo se anulan con motivo).
+   - Catálogo: aplica `0010_treatments.sql`. Siembra 41 tratamientos reales
+     en las 8 categorías y liga las FKs opcionales de citas y facturas. Solo el
+     owner administra precios; el resto del personal lo consulta.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 

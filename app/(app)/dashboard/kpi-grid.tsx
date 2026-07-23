@@ -80,8 +80,9 @@ export function KPIGrid({
       value: kpis.tratamientosPendientes,
       icon: ClipboardList,
       accent: "amber",
-      modulo: "Tratamientos",
-      tanda: 9,
+      modulo: "Citas",
+      tanda: 4,
+      href: "/citas",
     },
   ];
 

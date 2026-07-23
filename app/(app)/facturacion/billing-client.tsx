@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatRD } from "@/lib/utils";
 import type { InvoiceRow } from "@/lib/billing";
 import type { PatientBasic } from "@/lib/appointments";
+import type { CatalogItem } from "@/lib/treatments";
 import {
   ESTADO_FACTURA,
   METODO_PAGO,
@@ -44,6 +45,7 @@ interface Props {
   desde: string;
   hasta: string;
   patients: PatientBasic[];
+  catalog: CatalogItem[];
   canWrite: boolean;
 }
 
@@ -199,7 +201,7 @@ export function BillingClient(props: Props) {
         </div>
       )}
 
-      {props.canWrite && <InvoiceFormModal open={modal} onClose={() => setModal(false)} patients={props.patients} />}
+      {props.canWrite && <InvoiceFormModal open={modal} onClose={() => setModal(false)} patients={props.patients} catalog={props.catalog} />}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { formatRD } from "@/lib/utils";
 import { SERVICIOS, ITBIS_RATE } from "@/lib/treatments-catalog";
 import type { PatientBasic } from "@/lib/appointments";
+import type { CatalogItem } from "@/lib/treatments";
 import { createInvoice, type NuevoItem } from "./actions";
 import { METODOS, METODO_PAGO, type MetodoPago } from "./estado-config";
 
@@ -23,11 +24,13 @@ export function InvoiceFormModal({
   open,
   onClose,
   patients,
+  catalog,
   defaultPatientId,
 }: {
   open: boolean;
   onClose: () => void;
   patients: PatientBasic[];
+  catalog: CatalogItem[];
   defaultPatientId?: string;
 }) {
   const router = useRouter();
@@ -64,7 +67,11 @@ export function InvoiceFormModal({
   const total = Math.round((base + itbis) * 100) / 100;
   const cambio = metodo === "efectivo" ? Math.max(0, recibido - (montoPago || total)) : 0;
 
-  function addLinea(nombre?: string, precio?: number) {
+  const opciones = catalog.length
+    ? catalog.map((c) => ({ nombre: c.nombre, precio: c.precio, id: c.id as string | undefined }))
+    : SERVICIOS.map((s) => ({ nombre: s.nombre, precio: s.precio, id: undefined }));
+
+  function addLinea(nombre?: string, precio?: number, tratId?: string) {
     setLineas((l) => [
       ...l,
       {
@@ -73,6 +80,7 @@ export function InvoiceFormModal({
         cantidad: 1,
         precio_unitario: precio ?? 0,
         descuento_item: 0,
+        tratamiento_id: tratId ?? null,
       },
     ]);
   }
@@ -89,11 +97,12 @@ export function InvoiceFormModal({
         patientId: patient.id,
         tipo_ncf: tipoNcf,
         descuento_global: descGlobal,
-        items: lineas.map(({ descripcion, cantidad, precio_unitario, descuento_item }) => ({
+        items: lineas.map(({ descripcion, cantidad, precio_unitario, descuento_item, tratamiento_id }) => ({
           descripcion,
           cantidad,
           precio_unitario,
           descuento_item,
+          tratamiento_id,
         })),
         notas,
         pago: conPago
@@ -193,14 +202,14 @@ export function InvoiceFormModal({
             <Select
               value=""
               onChange={(e) => {
-                const s = SERVICIOS.find((x) => x.nombre === e.target.value);
-                if (s) addLinea(s.nombre, s.precio);
+                const s = opciones.find((x) => x.nombre === e.target.value);
+                if (s) addLinea(s.nombre, s.precio, s.id);
                 e.target.value = "";
               }}
               className="h-9 w-auto"
             >
               <option value="">+ Agregar del catálogo</option>
-              {SERVICIOS.map((s) => (
+              {opciones.map((s) => (
                 <option key={s.nombre} value={s.nombre}>
                   {s.nombre} — {formatRD(s.precio)}
                 </option>
