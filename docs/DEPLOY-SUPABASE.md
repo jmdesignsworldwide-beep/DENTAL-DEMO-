@@ -1,133 +1,107 @@
 # Migraciones automáticas de Supabase — Estándar JM Nexus Designs
 
-Procedimiento estándar para que las migraciones de base de datos se apliquen
-**solas al mergear a `main`**, sin pasos manuales. Replicable en cada proyecto
-nuevo. Cero SQL pegado a mano, cero olvidos, cero "se me quedó sin aplicar".
+Igual que Vercel despliega la app al mergear a `main`, **Supabase aplica las
+migraciones de la base de datos al mergear a `main`** — usando la integración
+nativa de GitHub de Supabase. Sin CI custom, sin secrets que administrar.
 
-> **Principio:** el esquema de la BD es código. Vive en `supabase/migrations/`,
-> se revisa en PRs, y se aplica automáticamente al llegar a `main`. La única
-> acción manual que queda es correr el **Security Advisor** después (Supabase no
-> expone un endpoint estable para automatizarlo).
+> **Principio:** el esquema de la BD es código, vive en `supabase/migrations/`,
+> se revisa en PRs, y Supabase lo aplica solo al llegar a `main`.
 
 ---
 
-## Cómo funciona
+## Requisitos
 
-- **Workflow:** `.github/workflows/supabase-migrations.yml`.
-- **Disparo:** push a `main` que toque `supabase/migrations/**` (o `workflow_dispatch` a mano).
-- **Acción:** instala la CLI de Supabase, enlaza el proyecto y corre `supabase db push`.
-- **Idempotencia:** `db push` consulta `supabase_migrations.schema_migrations` y **solo aplica las que faltan**. Correr el workflow dos veces no repite nada.
-- **Orden y transacciones:** aplica en orden por nombre de archivo, **cada migración en su propia transacción**. Por eso los cortes de enum (`ALTER TYPE ADD VALUE` en `0003`/`0008` usados en `0004`/`0009`) se respetan solos — a diferencia de pegar todo junto en el SQL Editor.
-- **Fallo claro:** si una migración falla, la CLI imprime **qué archivo** y el **error SQL**, y el step termina en rojo. El workflow falla y no marca `main` como desplegado.
-
----
-
-## Setup desde cero en un proyecto nuevo (una sola vez)
-
-### 1. Crear los 3 secrets del repo
-
-GitHub → **Settings → Secrets and variables → Actions → New repository secret**:
-
-| Secret | De dónde sale |
-|---|---|
-| `SUPABASE_ACCESS_TOKEN` | Supabase → **Account → Access Tokens** (https://supabase.com/dashboard/account/tokens) → *Generate new token*. Nómbralo `github-actions-migrations`. Autentica la CLI. |
-| `SUPABASE_PROJECT_REF` | Supabase → **Project Settings → General → Reference ID** (los ~20 caracteres; también está en la URL del dashboard: `.../project/<REF>`). |
-| `SUPABASE_DB_PASSWORD` | Supabase → **Project Settings → Database → Database password**. Es la contraseña de Postgres (la fijaste al crear el proyecto; ahí mismo puedes resetearla). **`db push` la necesita para conectarse a la BD** — el access token por sí solo no basta. |
-
-> **Por qué 3 y no 2:** el `SUPABASE_ACCESS_TOKEN` autentica la CLI con la
-> Management API (para enlazar), pero `supabase db push` **abre una conexión
-> Postgres directa** que exige el password de la BD.
-
-### 2. Tener estos archivos en el repo (ya incluidos aquí)
-
-- `supabase/config.toml` — config mínima (la ref real se pasa por secret, no se escribe).
-- `.github/workflows/supabase-migrations.yml` — el workflow.
-- `supabase/migrations/*.sql` — tus migraciones.
-
-### 3. Proteger `main`
-
-Settings → **Branches → Branch protection rule** para `main`: exigir PR + review
-antes de mergear. Esto es parte de la seguridad (ver más abajo).
-
-### 4. Primer despliegue
-
-Al mergear el primer PR que toque `supabase/migrations/**`, el workflow corre
-solo. Si las migraciones **ya existían** en `main` antes de configurar esto
-(como en este proyecto), dispáralo a mano una vez: **Actions → Supabase
-Migrations → Run workflow**.
-
-### 5. Convención de nombres (para proyectos nuevos)
-
-Crea cada migración con `supabase migration new <nombre>` → genera el prefijo de
-timestamp de 14 dígitos que la CLI espera. Mantén el orden por nombre.
+- El repo tiene `supabase/config.toml` y `supabase/migrations/` (ya están aquí).
+- **Plan Pro de Supabase.** La integración con GitHub para desplegar migraciones
+  (Branching) es una función de pago. En el plan Free no está disponible el
+  auto-deploy por git — en ese caso, aplicas las migraciones desde el **SQL
+  Editor** (una por una, en orden `0000`→`0016`) o con `supabase db push` desde
+  tu terminal, y luego la mantienes al día a mano.
 
 ---
 
-## Verificar que aplicó bien
+## Configurar la integración (una sola vez)
 
-En el **SQL Editor** de Supabase:
+1. **Supabase Dashboard → tu proyecto → Integrations** (o el menú de rama arriba
+   a la izquierda, junto al nombre del proyecto → **Enable branching**).
+2. Busca **GitHub** → **Connect** / **Authorize**.
+3. Autoriza el **Supabase GitHub App** y dale acceso al repositorio
+   **`jmdesignsworldwide-beep/dental-demo-`** (puedes limitarlo solo a ese repo).
+4. En la configuración de la integración:
+   - **Production branch:** `main`.
+   - **Supabase directory:** `supabase` (es el default; ahí están `config.toml` y `migrations/`).
+5. Guarda / habilita.
+
+**Qué hace a partir de ahí:**
+- **Merge a `main`** → Supabase aplica a la **base de datos de producción** las
+  migraciones de `supabase/migrations/` que aún no estén registradas.
+- **Abrir un PR** → crea una **rama de preview** con una BD efímera y corre las
+  migraciones ahí, para probar antes de mergear.
+
+---
+
+## ¿Aplica las 16 pendientes en el primer sync?
+
+**Sí — todas en el primer sync, sin correr nada a mano.** Supabase lleva su
+propio historial (`supabase_migrations.schema_migrations`); como tu BD está
+vacía, en el primer sync aplica las 17 en orden, **cada una en su propia
+transacción** (por eso los cortes de enum `0003→0004` y `0008→0009` se respetan
+solos). **No necesitas correr nada previo.**
+
+Para forzar el primer sync sin esperar un merge nuevo: haz un commit trivial a
+`main` que toque `supabase/migrations/` (o re-sincroniza desde el panel de la
+integración).
+
+---
+
+## Verificar que aplicó
+
+SQL Editor de Supabase:
 
 ```sql
--- Migraciones registradas por la CLI (una fila por archivo aplicado)
-select version, name from supabase_migrations.schema_migrations order by version;
-
--- Tablas y RLS
-select count(*) from pg_tables where schemaname = 'public';
+select version, name from supabase_migrations.schema_migrations order by version; -- 17 filas
+select count(*) from pg_tables where schemaname = 'public';                        -- 32
 select relname from pg_class
- where relnamespace = 'public'::regnamespace and relkind = 'r' and not relrowsecurity;  -- 0 filas
-select count(*) from pg_policies where schemaname = 'public';
-
--- Storage privado
-select id, public from storage.buckets;  -- buckets con public = false
+ where relnamespace = 'public'::regnamespace and relkind = 'r' and not relrowsecurity; -- 0 filas
+select count(*) from pg_policies where schemaname = 'public';                      -- ~90+
+select id, public from storage.buckets;                                            -- buckets private (false)
 ```
 
-Y en GitHub: **Actions → última corrida de Supabase Migrations** debe estar en
-verde, con el log "Aplicando migración …" por cada archivo nuevo.
+---
+
+## Activar tu usuario owner
+
+Crea tu usuario en **Authentication → Users**, y actívalo una vez (SQL Editor):
+
+```sql
+update public.profiles set rol = 'owner', activo = true, nombre = 'Dra. Tu Nombre'
+ where id = (select id from auth.users where email = 'TU-CORREO@ejemplo.com');
+```
+
+Cierra sesión, vuelve a entrar → ya verás el sistema completo.
 
 ---
 
-## Security Advisor (paso manual de cierre)
+## Security Advisor (cierre manual)
 
-Supabase no expone un endpoint estable para el Advisor, así que este paso queda
-manual tras cada despliegue con cambios de esquema:
-
-1. Dashboard → **Advisors → Security**.
-2. Correr completo y **cerrar todas** las advertencias (RLS faltante, funciones
-   sin `search_path`, políticas permisivas, etc.).
-3. Volver a correr y confirmar limpio.
-
-Un esquema bien construido (RLS + FORCE en todas las tablas, `SECURITY DEFINER`
-con `search_path` fijo, sin `USING(true)`) debería salir limpio de una.
+Tras cada despliegue con cambios de esquema: Dashboard → **Advisors → Security**
+→ correr, cerrar todas las advertencias, volver a correr y confirmar limpio.
 
 ---
 
-## Seguridad del token en Actions
+## Plan B (Free, o si la integración no aplica)
 
-- **Cifrado en reposo.** Los secrets de Actions se guardan cifrados; no son legibles desde la UI una vez creados.
-- **Enmascarado en logs.** GitHub reemplaza automáticamente cualquier aparición del valor de un secret por `***` en los logs. El workflow además nunca hace `echo` de los tokens.
-- **No están en el repo.** Viven en Settings, no en el código. La ref del proyecto se pasa por secret; `config.toml` solo lleva una etiqueta.
-- **No se exponen a forks.** Los workflows disparados por `pull_request` desde un fork **no** reciben los secrets (default de GitHub). Solo corren con secrets los push/merge a ramas del propio repo.
-- **Superficie:** quien pueda **pushear a `main`** o **editar el workflow** puede, en teoría, filtrar un secret con un step malicioso. Por eso el paso 3 (proteger `main` con PR + review) es parte de la seguridad, no un extra.
-- **Higiene:** usa un token dedicado (`github-actions-migrations`), rótalo periódicamente, y revócalo si sospechas exposición.
-
----
-
-## Problemas comunes
-
-| Síntoma | Causa / arreglo |
-|---|---|
-| `Missing SUPABASE_DB_PASSWORD` o pide password | Falta el secret `SUPABASE_DB_PASSWORD` (paso 1). |
-| `failed to connect` en `link` | Ref o password incorrectos. Verifica en Project Settings → Database. |
-| La CLI se queja del formato de versión del archivo | Nombres no-timestamp. Renombra con `supabase migration new`, o fija una versión de CLI que los acepte en `supabase/setup-cli`. |
-| Migración fuera de orden | `supabase db push --include-all` (agrega el flag en el workflow) para forzar aplicar versiones anteriores a la última remota. |
-| Ya aplicaste migraciones a mano y la CLI quiere repetirlas | `schema_migrations` está vacío. Márcalas como aplicadas con `supabase migration repair --status applied <version>` por cada una, o deja que `db push` las re-aplique (las migraciones son idempotentes: `if not exists`, `on conflict do nothing`, `create or replace`). |
+- **SQL Editor:** pega el contenido de `supabase/migrations/0000_init.sql`, Run;
+  repite `0001`…`0016` **en orden, uno por uno** (no los juntes: el enum de
+  `0003`/`0008` falla si van en la misma corrida).
+- **CLI:** `supabase link --project-ref <REF>` + `supabase db push` desde tu
+  terminal (requiere `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD` en tu
+  entorno local, nunca en el chat).
 
 ---
 
-## TL;DR para un proyecto nuevo
+## TL;DR proyecto nuevo
 
-1. `supabase migration new …` para cada cambio de esquema (commit en un PR).
-2. Copia `.github/workflows/supabase-migrations.yml` y `supabase/config.toml`.
-3. Crea los 3 secrets (`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`).
-4. Protege `main` con PR + review.
-5. Merge → las migraciones se aplican solas. Corre el Security Advisor. Listo.
+1. `supabase migration new …` por cada cambio de esquema (en un PR).
+2. Supabase → Integrations → conectar GitHub, production branch = `main`, directorio = `supabase`.
+3. Merge → Supabase aplica solo. Corre el Security Advisor. Listo.
