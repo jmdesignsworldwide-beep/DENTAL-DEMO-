@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Users,
   CalendarCheck,
@@ -21,6 +22,7 @@ interface KpiDef {
   accent: "clinical" | "mint" | "amber" | "gold";
   modulo: string;
   tanda: number;
+  href?: string; // si el módulo ya existe, navega en vez de mostrar toast
 }
 
 export function KPIGrid({
@@ -48,6 +50,7 @@ export function KPIGrid({
           accent: "gold",
           modulo: "Pacientes",
           tanda: 3,
+          href: "/pacientes",
         };
 
   const defs: KpiDef[] = [
@@ -59,6 +62,7 @@ export function KPIGrid({
       accent: "clinical",
       modulo: "Pacientes",
       tanda: 3,
+      href: "/pacientes",
     },
     {
       label: "Citas de hoy",
@@ -79,30 +83,44 @@ export function KPIGrid({
     },
   ];
 
+  const cardFor = (d: KpiDef) => (
+    <KPICard
+      label={d.label}
+      value={d.value}
+      icon={d.icon}
+      prefix={d.prefix}
+      trend={d.trend}
+      accent={d.accent}
+    />
+  );
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-      {defs.map((d) => (
-        <button
-          key={d.label}
-          onClick={() =>
-            toast.toast({
-              type: "info",
-              title: d.modulo,
-              description: `El módulo completo se activa en la Tanda ${d.tanda}.`,
-            })
-          }
-          className="block w-full rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-        >
-          <KPICard
-            label={d.label}
-            value={d.value}
-            icon={d.icon}
-            prefix={d.prefix}
-            trend={d.trend}
-            accent={d.accent}
-          />
-        </button>
-      ))}
+      {defs.map((d) =>
+        d.href ? (
+          <Link
+            key={d.label}
+            href={d.href}
+            className="block w-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          >
+            {cardFor(d)}
+          </Link>
+        ) : (
+          <button
+            key={d.label}
+            onClick={() =>
+              toast.toast({
+                type: "info",
+                title: d.modulo,
+                description: `El módulo completo se activa en la Tanda ${d.tanda}.`,
+              })
+            }
+            className="block w-full rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          >
+            {cardFor(d)}
+          </button>
+        ),
+      )}
     </div>
   );
 }
