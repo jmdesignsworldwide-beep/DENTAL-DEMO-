@@ -22,6 +22,13 @@ Fecha: 2026-07-23 · Rama: `claude/sistema-dental-demo-oxphzh`
 | Cero secretos hardcodeados | ✅ | `grep -E "eyJ…|sk_live|sk_test|-----BEGIN"` en todo el código → sin coincidencias |
 | `.env` ignorado | ✅ | `.gitignore` cubre `.env`, `.env*.local`, etc. `git ls-files` → sólo `.env.example` versionado |
 
+**Ataque ejecutado en esta pasada:** `git log -p --all | grep -E "eyJ…|postgres://…:…@|sk_live|-----BEGIN"`
+sobre **todo el historial** → 2 coincidencias, ambas **falsos positivos verificados**: (a) una
+línea del propio `SECURITY-AUDIT.md` que contiene el string literal `"eyJ…"`, y (b) el
+**placeholder** de `.env.example` (`eyJhbGciOi...` truncado, no una clave real). Historial
+limpio de secretos reales. `.env.example` sólo contiene placeholders (`TU-PROYECTO`, keys
+truncadas).
+
 🔻 **Prueba pendiente (dueña):** inspeccionar el bundle de producción (`.next/`) tras
 el deploy y confirmar por búsqueda que la `service_role` key no aparece. Como `admin.ts`
 usa `server-only`, Next rompe el build si se filtra al cliente — la garantía es estructural.
@@ -35,6 +42,14 @@ usa `server-only`, Next rompe el build si se filtra al cliente — la garantía 
 | RLS + FORCE en TODAS las tablas | ✅ | **32 tablas creadas · 32 `enable row level security` · 32 `force row level security`** (relación 1:1:1, sin excepción) |
 | Cero `USING(true)` | ✅ | `grep -iE "using ?\(true\)"` en migraciones → sólo aparece en **comentarios** ("jamás `USING(true)`"), nunca en una política real |
 | Deny by default | ✅ | La migración cero (`0000_init.sql`) activa RLS+FORCE antes de definir cualquier política; sin política, la tabla niega todo |
+
+**Ataque ejecutado en esta pasada (cobertura de políticas/lockout):** se recorrieron las
+32 tablas buscando alguna con RLS+FORCE **sin política** (que bloquearía incluso al owner —
+un bug real). Tres tablas se marcaron en un primer barrido estático (`payments`,
+`tooth_events`, `odontogram_snapshots`); al verificarlas se confirmó que **sí tienen
+políticas + grants**, creadas dinámicamente con `foreach t in array[…] loop execute
+format(…)` (0006 y 0009), que el grep estático no parsea. **Ninguna tabla queda bloqueada.**
+`ncf_sequences` recibió políticas de owner en 0016 (antes sólo se accedía vía `next_ncf`).
 
 🔻 **Prueba pendiente (dueña):** desde el SQL editor o la API REST con la **anon key**,
 `select * from <tabla>` sobre cada tabla → debe volver **vacío** (0 filas) o rechazado.
