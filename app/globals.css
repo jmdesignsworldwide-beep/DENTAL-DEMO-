@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────── Design tokens ───────────────────────── */
+@layer base {
+  :root {
+    /* Light — base blanca, acentos clinical blue, cards ice blue */
+    --bg: 210 40% 98%;          /* casi blanco, tinte frío */
+    --surface: 0 0% 100%;       /* cards blancas */
+    --surface-2: 204 71% 95%;   /* ice blue sutil */
+    --border: 210 24% 90%;
+    --fg: 213 55% 12%;          /* deep navy text */
+    --muted: 213 12% 45%;
+    --ring: 210 100% 40%;       /* clinical blue */
+
+    --shadow-color: 213 60% 15%;
+  }
+
+  .dark {
+    /* Dark — deep navy, clinical blue con glow, acentos dorados */
+    --bg: 213 55% 7%;           /* deep navy 0A1628 */
+    --surface: 214 46% 11%;     /* navy light */
+    --surface-2: 215 42% 15%;   /* navy lighter */
+    --border: 213 35% 20%;
+    --fg: 210 40% 96%;
+    --muted: 210 20% 65%;
+    --ring: 210 100% 55%;
+
+    --shadow-color: 213 80% 3%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: hsl(var(--bg));
+    color: hsl(var(--fg));
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Números clínicos y montos siempre tabulares */
+  .tabular,
+  [data-tabular] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  ::selection {
+    background: hsl(var(--ring) / 0.25);
+  }
+
+  /* Scrollbar discreto y premium */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted) / 0.5);
+    background-clip: padding-box;
+  }
+}
+
+/* ───────────────────────── Utilidades ───────────────────────── */
+@layer utilities {
+  /* Glass — sutil en light, con profundidad en dark */
+  .glass {
+    background: hsl(var(--surface) / 0.7);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid hsl(var(--border) / 0.7);
+  }
+  .dark .glass {
+    background: hsl(var(--surface) / 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Gradiente azul clínico para texto de titulares/nombres */
+  .text-gradient-clinical {
+    background: linear-gradient(135deg, #3391e6 0%, #0066cc 55%, #003d7a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  .dark .text-gradient-clinical {
+    background: linear-gradient(135deg, #6bb6f0 0%, #3391e6 55%, #0066cc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #e0c876 0%, #c9a84c 55%, #a88a38 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* Skeleton shimmer */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--fg) / 0.06),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Respetar prefers-reduced-motion globalmente como red de seguridad */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
