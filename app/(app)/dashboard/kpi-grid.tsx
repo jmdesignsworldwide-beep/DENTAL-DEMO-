@@ -7,8 +7,10 @@ import {
   DollarSign,
   ClipboardList,
   UserCheck,
+  FileSpreadsheet,
   type LucideIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { KPICard } from "@/components/ui/kpi-card";
 import { useToast } from "@/components/ui/toast";
 import type { DashboardData } from "@/lib/dashboard";
@@ -86,6 +88,20 @@ export function KPIGrid({
     },
   ];
 
+  // 5ª tarjeta: monto en presupuestos pendientes (solo con acceso a finanzas).
+  if (canSeeIncome && kpis.presupuestosPendientes !== null) {
+    defs.push({
+      label: "En presupuestos pendientes",
+      value: kpis.presupuestosPendientes,
+      icon: FileSpreadsheet,
+      prefix: "RD$ ",
+      accent: "gold",
+      modulo: "Presupuestos",
+      tanda: 19,
+      href: "/presupuestos?estado=presentado",
+    });
+  }
+
   const cardFor = (d: KpiDef) => (
     <KPICard
       label={d.label}
@@ -98,7 +114,12 @@ export function KPIGrid({
   );
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+    <div
+      className={cn(
+        "grid grid-cols-2 gap-3 sm:gap-4",
+        defs.length >= 5 ? "lg:grid-cols-5" : "lg:grid-cols-4",
+      )}
+    >
       {defs.map((d) =>
         d.href ? (
           <Link
