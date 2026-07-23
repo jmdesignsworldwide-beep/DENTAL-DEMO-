@@ -60,10 +60,13 @@ supabase/
 
 3. Aplicar las migraciones en orden (**protocolo PAT temporal**):
    - Generar un PAT temporal en Supabase.
-   - Aplicar `supabase/migrations/0000_init.sql` y luego
-     `0001_dashboard.sql` (SQL Editor o `supabase db push`). La `0001`
-     incluye el seed dominicano que enciende los KPIs, la banda de citas
-     y el feed del dashboard con datos realistas relativos a la fecha actual.
+   - Aplicar en orden `0000_init.sql`, `0001_dashboard.sql` y
+     `0002_patients.sql` (SQL Editor o `supabase db push`). La `0001`
+     incluye el seed dominicano que enciende el dashboard; la `0002`
+     completa el CRM de pacientes (45 pacientes con expediente completo).
+   - La `0002` intenta crear el bucket privado **`patient-photos`** y sus
+     políticas de Storage; si tu conexión no tiene permisos sobre `storage`,
+     créalo manualmente (privado) y replica las políticas del archivo.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
