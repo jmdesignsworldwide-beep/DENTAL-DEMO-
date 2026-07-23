@@ -19,7 +19,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-bg">
       {/* Sidebar desktop */}
-      <aside className="hidden w-[264px] shrink-0 border-r border-border bg-surface lg:block">
+      <aside className="hidden w-[264px] shrink-0 border-r border-border bg-surface lg:block print:hidden">
         <div className="sticky top-0 h-screen">
           <SidebarNav role={user.rol} />
         </div>
