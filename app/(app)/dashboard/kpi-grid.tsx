@@ -71,6 +71,7 @@ export function KPIGrid({
       accent: "mint",
       modulo: "Citas",
       tanda: 4,
+      href: "/citas?view=dia",
     },
     tercero,
     {

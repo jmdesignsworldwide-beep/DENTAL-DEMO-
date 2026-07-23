@@ -1,15 +1,15 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { CalendarX2, Clock, Stethoscope, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useToast } from "@/components/ui/toast";
 import { formatHora } from "@/lib/utils";
 import type { CitaHoy } from "@/lib/dashboard";
 import { ESTADO } from "./estado-config";
 
 export function AppointmentBand({ citas }: { citas: CitaHoy[] }) {
-  const toast = useToast();
+  const router = useRouter();
 
   if (citas.length === 0) {
     return (
@@ -30,13 +30,7 @@ export function AppointmentBand({ citas }: { citas: CitaHoy[] }) {
         return (
           <button
             key={c.id}
-            onClick={() =>
-              toast.toast({
-                type: "info",
-                title: `Cita · ${c.paciente}`,
-                description: `${formatHora(c.hora)} · ${c.tratamiento}. El detalle completo llega en la Tanda 4.`,
-              })
-            }
+            onClick={() => router.push("/citas?view=dia")}
             className="group relative min-w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border bg-surface p-4 text-left shadow-card transition-all duration-300 ease-spring hover:-translate-y-0.5 hover:shadow-card-hover sm:min-w-0 dark:bg-surface/80"
           >
             <span

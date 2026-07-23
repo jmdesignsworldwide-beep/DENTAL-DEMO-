@@ -33,7 +33,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, ready: true, tanda: 2 },
   { label: "Pacientes", href: "/pacientes", icon: Users, ready: true, tanda: 3, roles: ["owner", "dentista", "recepcionista", "asistente"] },
-  { label: "Citas", href: "/citas", icon: CalendarDays, ready: false, tanda: 4, roles: ["owner", "dentista", "recepcionista", "asistente"] },
+  { label: "Citas", href: "/citas", icon: CalendarDays, ready: true, tanda: 4, roles: ["owner", "dentista", "recepcionista", "asistente"] },
   { label: "Historia Clínica", href: "/historia", icon: FileText, ready: false, tanda: 5, roles: ["owner", "dentista"] },
   { label: "Odontograma", href: "/odontograma", icon: Grid3x3, ready: false, tanda: 6, roles: ["owner", "dentista", "asistente"] },
   { label: "Diagrama Dental", href: "/diente", icon: Microscope, ready: false, tanda: 7, roles: ["owner", "dentista"] },
