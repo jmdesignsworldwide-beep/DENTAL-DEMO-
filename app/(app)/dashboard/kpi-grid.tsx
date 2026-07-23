@@ -42,6 +42,7 @@ export function KPIGrid({
           accent: "gold",
           modulo: "Facturación",
           tanda: 8,
+          href: "/facturacion",
         }
       : {
           label: "Pacientes activos",

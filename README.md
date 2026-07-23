@@ -82,6 +82,10 @@ supabase/
    - Diagrama anatómico: aplica `0007_anatomy.sql`. Añade marcas de
      afectación por zona (esmalte, dentina, pulpa, conducto, raíz, ápice) con
      historial inmutable, sembradas también para María Altagracia Peña.
+   - Facturación: aplica `0008_invoice_status.sql` (añade estado) y **luego**,
+     por separado, `0009_billing.sql` (NCF, ítems, pagos, secuencias). La `0009`
+     amplía y completa las facturas ya sembradas (les asigna NCF e ítems). Las
+     facturas emitidas son inmutables (solo se anulan con motivo).
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
