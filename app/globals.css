@@ -30,6 +30,35 @@
     --shadow-color: 213 80% 3%;
   }
 
+  /* Scope de tema INDEPENDIENTE para el portal del paciente (mockup).
+     Re-define los mismos tokens localmente, así el teléfono se ve en su
+     propio tema sin importar el tema global de la app. Dentro del portal
+     se usan solo tokens semánticos (nunca la variante dark:). */
+  .portal-scope[data-portal-theme="light"] {
+    --bg: 210 40% 98%;
+    --surface: 0 0% 100%;
+    --surface-2: 204 71% 95%;
+    --border: 210 24% 90%;
+    --fg: 213 55% 12%;
+    --muted: 213 12% 45%;
+    --ring: 210 100% 40%;
+    --shadow-color: 213 60% 15%;
+  }
+  .portal-scope[data-portal-theme="dark"] {
+    --bg: 213 55% 7%;
+    --surface: 214 46% 11%;
+    --surface-2: 215 42% 15%;
+    --border: 213 35% 20%;
+    --fg: 210 40% 96%;
+    --muted: 210 20% 65%;
+    --ring: 210 100% 55%;
+    --shadow-color: 213 80% 3%;
+  }
+  .portal-scope {
+    background-color: hsl(var(--bg));
+    color: hsl(var(--fg));
+  }
+
   * {
     border-color: hsl(var(--border));
   }
