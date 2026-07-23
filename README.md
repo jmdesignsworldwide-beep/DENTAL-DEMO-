@@ -120,6 +120,15 @@ supabase/
      normativa dominicana vigente (AFP 2.87% + SFS 3.04% e ISR por escala
      DGII, en `lib/payroll.ts`) y emite un volante de pago imprimible en
      `/imprimir/volante/[staffId]`.
+   - Notificaciones: aplica `0015_notifications.sql`. Añade `notifications`
+     (feed de la clínica, visible al personal activo, con estado de lectura) y
+     `notification_prefs` (preferencias por usuario y canal — cada quien ve y
+     edita solo las suyas), con RLS + FORCE. Siembra ~18 notificaciones
+     coherentes con pacientes, stock y facturas reales, mezclando tipos,
+     prioridades y estados. La campana del header (`/api/notifications`) usa
+     realtime + polling, agrupa de forma inteligente (p. ej. "3 pacientes en
+     sala de espera") y ofrece acciones rápidas in-situ; la página completa
+     (`/notificaciones`) añade filtros, búsqueda y el panel de preferencias.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
