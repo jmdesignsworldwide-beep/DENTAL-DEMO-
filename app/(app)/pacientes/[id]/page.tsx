@@ -36,6 +36,8 @@ export default async function PatientPage({
     user.rol === "dentista";
   const canSeeIncome = user.rol === "owner" || user.rol === "recepcionista";
   const canSeeClinical = user.rol === "owner" || user.rol === "dentista";
+  const canSeeOdonto =
+    user.rol === "owner" || user.rol === "dentista" || user.rol === "asistente";
 
   return (
     <ProfileView
@@ -45,6 +47,7 @@ export default async function PatientPage({
       canEdit={canEdit}
       canSeeIncome={canSeeIncome}
       canSeeClinical={canSeeClinical}
+      canSeeOdonto={canSeeOdonto}
     />
   );
 }

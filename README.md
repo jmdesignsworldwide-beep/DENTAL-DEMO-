@@ -75,6 +75,10 @@ supabase/
      privado **`clinical-files`** y sus políticas; si tu conexión no tiene
      permisos sobre `storage`, créalo manualmente (privado). Las entradas
      firmadas son inmutables a nivel de base de datos.
+   - Odontograma: aplica `0006_odontogram.sql`. Siembra el paciente
+     **María Altagracia Peña** con estados variados (caries, coronas,
+     implantes, endodoncias, extracciones) para que el módulo abra impactante.
+     El historial por diente y los snapshots son inmutables a nivel de DB.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 

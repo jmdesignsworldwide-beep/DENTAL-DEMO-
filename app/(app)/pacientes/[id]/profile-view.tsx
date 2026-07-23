@@ -80,6 +80,7 @@ export function ProfileView({
   canEdit,
   canSeeIncome,
   canSeeClinical,
+  canSeeOdonto,
 }: {
   patient: PatientOverview;
   historial: TreatmentRow[];
@@ -87,6 +88,7 @@ export function ProfileView({
   canEdit: boolean;
   canSeeIncome: boolean;
   canSeeClinical?: boolean;
+  canSeeOdonto?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -358,12 +360,17 @@ export function ProfileView({
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {modulos.map((m) => {
-                    const isHistoria = m.label === "Historia clínica";
-                    if (isHistoria && canSeeClinical) {
+                    const href =
+                      m.label === "Historia clínica" && canSeeClinical
+                        ? `/historia/${patient.id}`
+                        : m.label === "Odontograma" && canSeeOdonto
+                          ? `/odontograma/${patient.id}`
+                          : null;
+                    if (href) {
                       return (
                         <Link
                           key={m.label}
-                          href={`/historia/${patient.id}`}
+                          href={href}
                           className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-semibold text-fg transition-colors hover:border-clinical-300 hover:bg-clinical-50/50 dark:hover:bg-clinical-900/20"
                         >
                           <m.icon className="h-4 w-4 shrink-0 text-clinical" />
