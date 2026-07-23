@@ -6,9 +6,18 @@ import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/activity";
 import { rateLimit } from "@/lib/rate-limit";
 import { toothName } from "@/lib/teeth";
-import type { ToothStatus } from "@/lib/odontogram";
+import type { ToothStatus, AffectationType } from "@/lib/odontogram";
 
 const ROLES = ["owner", "dentista", "asistente"] as const;
+const ZONAS = ["esmalte", "dentina", "camara_pulpar", "conducto", "raiz", "apice"];
+const AFFECTATIONS: AffectationType[] = [
+  "caries_superficial",
+  "caries_profunda",
+  "pulpitis",
+  "absceso",
+  "fractura",
+  "desgaste",
+];
 const ESTADOS: ToothStatus[] = [
   "sano",
   "tratado",
@@ -106,6 +115,82 @@ export async function saveSnapshot(
     entity: "patient",
     entityId: patientId,
   });
+  revalidatePath(`/odontograma/${patientId}`);
+  return { ok: true };
+}
+
+export async function setAnatomyMark(
+  patientId: string,
+  fdi: number,
+  zona: string,
+  tipo: AffectationType,
+  nota: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const user = await requireRole([...ROLES]);
+  if (!/^[0-9a-f-]{36}$/i.test(patientId) || !Number.isInteger(fdi))
+    return { ok: false, error: "Datos inválidos." };
+  if (!ZONAS.includes(zona)) return { ok: false, error: "Zona inválida." };
+  if (!AFFECTATIONS.includes(tipo)) return { ok: false, error: "Tipo inválido." };
+
+  const { ok } = rateLimit(`ana-write:${user.id}`, { limit: 60, windowMs: 60_000 });
+  if (!ok) return { ok: false, error: "Demasiadas operaciones." };
+
+  const notaClean = (nota ?? "").trim().slice(0, 400) || null;
+  const supabase = createClient();
+  const { error } = await supabase.from("anatomy_marks").upsert(
+    {
+      patient_id: patientId,
+      fdi,
+      zona,
+      tipo,
+      nota: notaClean,
+      updated_by: user.id,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "patient_id,fdi,zona" },
+  );
+  if (error) return { ok: false, error: "No se pudo marcar la zona." };
+
+  await supabase.from("anatomy_events").insert({
+    patient_id: patientId,
+    fdi,
+    zona,
+    tipo,
+    accion: "marco",
+    nota: notaClean,
+    created_by: user.id,
+  });
+
+  revalidatePath(`/odontograma/${patientId}`);
+  return { ok: true };
+}
+
+export async function removeAnatomyMark(
+  patientId: string,
+  fdi: number,
+  zona: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const user = await requireRole([...ROLES]);
+  if (!/^[0-9a-f-]{36}$/i.test(patientId) || !Number.isInteger(fdi) || !ZONAS.includes(zona))
+    return { ok: false, error: "Datos inválidos." };
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("anatomy_marks")
+    .delete()
+    .eq("patient_id", patientId)
+    .eq("fdi", fdi)
+    .eq("zona", zona);
+  if (error) return { ok: false, error: "No se pudo desmarcar." };
+
+  await supabase.from("anatomy_events").insert({
+    patient_id: patientId,
+    fdi,
+    zona,
+    accion: "desmarco",
+    created_by: user.id,
+  });
+
   revalidatePath(`/odontograma/${patientId}`);
   return { ok: true };
 }
