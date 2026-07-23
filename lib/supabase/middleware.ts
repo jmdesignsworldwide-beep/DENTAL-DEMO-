@@ -52,6 +52,8 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/auth") ||
     path === "/" ||
     path === "/design-system" || // solo dev; en producción la página hace 404
+    path === "/sala-espera" || // kiosco TV: se autentica por token o sesión dentro de la página
+    path === "/api/sala-espera" || // endpoint de refresco del kiosco (token o sesión)
     path.startsWith("/_next") ||
     path.startsWith("/favicon");
 
