@@ -100,6 +100,16 @@ supabase/
      de solo lectura, sin credenciales de usuario) o por sesión del personal, y
      el servidor devuelve **solo** los campos mínimos de la sala vía cliente
      admin tras validar el token.
+   - Portal del paciente: aplica `0013_patient_portal.sql`. Añade
+     `treatment_plans` y `treatment_plan_stages` (progreso del tratamiento por
+     etapas) con RLS + FORCE, y deja tres pacientes demo en estados claros:
+     **María Altagracia Peña** con plan de ortodoncia en curso + balance
+     pendiente, otro con endodoncia en fases y al día, y un tercero al día sin
+     plan. El portal (`/portal-paciente`) se muestra dentro de un marco de
+     teléfono; "Ver a pantalla completa" abre `/portal/[patientId]` (bare,
+     protegido por sesión del personal) para entregarlo en el celular durante
+     la demo. El teléfono lleva su propio toggle de tema, independiente del
+     tema global.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
