@@ -206,6 +206,8 @@ export function OdontogramClient({
                 fdi={selectedFdi}
                 state={selectedState}
                 events={data.events}
+                anatomyMarks={data.anatomy[selectedFdi] ?? []}
+                anatomyEvents={data.anatomyEvents}
                 canWrite={canWrite && !viewingSnapshot}
                 onClose={() => setSelectedFdi(null)}
               />

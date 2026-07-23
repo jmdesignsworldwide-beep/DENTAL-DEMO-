@@ -79,6 +79,9 @@ supabase/
      **María Altagracia Peña** con estados variados (caries, coronas,
      implantes, endodoncias, extracciones) para que el módulo abra impactante.
      El historial por diente y los snapshots son inmutables a nivel de DB.
+   - Diagrama anatómico: aplica `0007_anatomy.sql`. Añade marcas de
+     afectación por zona (esmalte, dentina, pulpa, conducto, raíz, ápice) con
+     historial inmutable, sembradas también para María Altagracia Peña.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 

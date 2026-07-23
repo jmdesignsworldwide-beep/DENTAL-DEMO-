@@ -7,10 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { formatDateLong } from "@/lib/utils";
-import { toothName, type Superficie } from "@/lib/teeth";
-import type { ToothState, ToothEvent, ToothStatus } from "@/lib/odontogram";
+import { toothName, toothType, type Superficie } from "@/lib/teeth";
+import type {
+  ToothState,
+  ToothEvent,
+  ToothStatus,
+  AnatomyMark,
+  AnatomyEvent,
+} from "@/lib/odontogram";
 import { ESTADO_DIENTE, ESTADOS_ORDEN } from "./tooth-config";
 import { SurfaceDiagram } from "./surface-diagram";
+import { AnatomyDiagram } from "./anatomy-diagram";
 import { setToothState } from "./actions";
 
 export function ToothPanel({
@@ -18,6 +25,8 @@ export function ToothPanel({
   fdi,
   state,
   events,
+  anatomyMarks,
+  anatomyEvents,
   canWrite,
   onClose,
 }: {
@@ -25,6 +34,8 @@ export function ToothPanel({
   fdi: number;
   state: ToothState | undefined;
   events: ToothEvent[];
+  anatomyMarks: AnatomyMark[];
+  anatomyEvents: AnatomyEvent[];
   canWrite: boolean;
   onClose: () => void;
 }) {
@@ -107,6 +118,21 @@ export function ToothPanel({
             superficies={superficies}
             onToggle={toggleSurface}
             readOnly={!canWrite}
+          />
+        </div>
+
+        {/* Corte anatómico del diente */}
+        <div>
+          <p className="mb-2 text-[13px] font-bold uppercase tracking-wide text-muted">
+            Anatomía del diente
+          </p>
+          <AnatomyDiagram
+            patientId={patientId}
+            fdi={fdi}
+            type={toothType(fdi)}
+            marks={anatomyMarks}
+            events={anatomyEvents}
+            canWrite={canWrite}
           />
         </div>
 
