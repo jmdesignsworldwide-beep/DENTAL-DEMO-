@@ -13,7 +13,7 @@ export function Header({
   onMenu: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur-xl lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur-xl lg:px-6 print:hidden">
       <button
         onClick={onMenu}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-fg transition-colors hover:bg-surface-2 lg:hidden"
