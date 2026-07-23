@@ -45,7 +45,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Portal Paciente", href: "/portal-paciente", icon: Smartphone, ready: true, tanda: 13 },
   { label: "Personal y Nómina", href: "/personal", icon: UserCog, ready: true, tanda: 14, roles: ["owner"] },
   { label: "Notificaciones", href: "/notificaciones", icon: Bell, ready: true, tanda: 15 },
-  { label: "Configuración", href: "/configuracion", icon: Settings, ready: false, tanda: 16, roles: ["owner"] },
+  { label: "Configuración", href: "/configuracion", icon: Settings, ready: true, tanda: 16, roles: ["owner"] },
 ];
 
 export function visibleFor(role: Role): NavItem[] {
