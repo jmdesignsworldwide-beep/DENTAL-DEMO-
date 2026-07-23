@@ -21,6 +21,7 @@ const ACTIONS: Action[] = [
     accent:
       "from-clinical-400 to-clinical-700 shadow-[0_8px_24px_rgba(0,102,204,0.35)]",
     tanda: 4,
+    href: "/citas?view=dia",
   },
   {
     label: "Nuevo paciente",

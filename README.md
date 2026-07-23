@@ -67,6 +67,10 @@ supabase/
    - La `0002` intenta crear el bucket privado **`patient-photos`** y sus
      políticas de Storage; si tu conexión no tiene permisos sobre `storage`,
      créalo manualmente (privado) y replica las políticas del archivo.
+   - Citas: aplica `0003_appointment_status.sql` (añade estados) y **luego**,
+     por separado, `0004_appointments.sql`. Postgres no permite usar un valor
+     de enum recién creado en la misma transacción, por eso van en dos archivos
+     — no los combines en una sola ejecución del SQL Editor.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
