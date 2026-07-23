@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { requireActiveUser } from "@/lib/auth";
+import { getDashboardData } from "@/lib/dashboard";
 import { DashboardHome } from "./dashboard-home";
+import { DashboardSkeleton } from "./loading-skeleton";
 
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  // Puerta de servidor. La UI con iconos vive en el client component
-  // (evita pasar componentes Lucide a través del límite RSC).
+async function DashboardData() {
   const user = await requireActiveUser();
-  return <DashboardHome nombre={user.nombre} />;
+  const data = await getDashboardData(user);
+  return <DashboardHome nombre={user.nombre} data={data} />;
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardData />
+    </Suspense>
+  );
 }
