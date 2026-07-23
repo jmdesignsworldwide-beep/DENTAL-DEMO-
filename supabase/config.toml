@@ -1,0 +1,5 @@
+# Configuración mínima de la CLI de Supabase para CI.
+# El project_id de aquí es solo una etiqueta local; el proyecto real se enlaza
+# en el workflow con `supabase link --project-ref <SECRET>`, así que la ref real
+# nunca queda escrita en el repo.
+project_id = "dental-demo"
