@@ -129,6 +129,17 @@ supabase/
      realtime + polling, agrupa de forma inteligente (p. ej. "3 pacientes en
      sala de espera") y ofrece acciones rápidas in-situ; la página completa
      (`/notificaciones`) añade filtros, búsqueda y el panel de preferencias.
+   - Configuración: aplica `0016_settings.sql`. Amplía `clinic_settings` con
+     identidad (dirección, teléfono, RNC, redes, sitio), horario semanal,
+     config de citas y plantilla de recordatorio, nivel de privacidad y umbral
+     de alerta NCF; añade `clinic_holidays` (feriados dominicanos del año),
+     `app_users` (gestión de accesos, demo) y abre políticas de owner sobre
+     `ncf_sequences`. RLS + FORCE, todo solo para el owner. La página
+     `/configuracion` (8 secciones) permite editar la marca con **preview en
+     vivo** de factura y sala de espera, ajustar precios del catálogo con
+     ajuste porcentual masivo (antes/después), gestionar usuarios con **matriz
+     de permisos** derivada del acceso real, administrar tokens de pantalla,
+     secuencias NCF y exportar la bitácora de auditoría a CSV/PDF.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
