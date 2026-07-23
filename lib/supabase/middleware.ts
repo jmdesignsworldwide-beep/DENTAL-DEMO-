@@ -36,15 +36,22 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Fallo de red/credenciales — tratamos como no autenticado y dejamos
+    // que las rutas públicas sigan sirviendo (no rompemos con un 500).
+    user = null;
+  }
 
   const path = request.nextUrl.pathname;
   const isPublic =
     path === "/login" ||
     path.startsWith("/auth") ||
     path === "/" ||
+    path === "/design-system" || // solo dev; en producción la página hace 404
     path.startsWith("/_next") ||
     path.startsWith("/favicon");
 

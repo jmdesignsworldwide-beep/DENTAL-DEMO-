@@ -58,10 +58,12 @@ supabase/
    | `SUPABASE_SERVICE_ROLE_KEY` | service_role — **SOLO servidor**, nunca `NEXT_PUBLIC_` |
    | `NEXT_PUBLIC_SITE_URL` | URL canónica del sitio |
 
-3. Aplicar la migración cero (**protocolo PAT temporal**):
+3. Aplicar las migraciones en orden (**protocolo PAT temporal**):
    - Generar un PAT temporal en Supabase.
-   - Aplicar `supabase/migrations/0000_init.sql` una sola vez
-     (SQL Editor o `supabase db push`).
+   - Aplicar `supabase/migrations/0000_init.sql` y luego
+     `0001_dashboard.sql` (SQL Editor o `supabase db push`). La `0001`
+     incluye el seed dominicano que enciende los KPIs, la banda de citas
+     y el feed del dashboard con datos realistas relativos a la fecha actual.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
