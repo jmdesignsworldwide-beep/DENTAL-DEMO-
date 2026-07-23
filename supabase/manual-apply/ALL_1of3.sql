@@ -1,10 +1,6 @@
--- ══════════════════════════════════════════════════════════════════
---  APLICACIÓN MANUAL — CORRIDA 1 de 3   (migraciones 0000 → 0003)
---  Pega TODO este archivo en el SQL Editor de Supabase y dale Run.
---  Debe terminar sin error antes de correr el archivo 2 de 3.
--- ══════════════════════════════════════════════════════════════════
+-- APLICACIÓN MANUAL — CORRIDA 1 de 3 (0000 → 0003). Pega y Run. Debe terminar sin error antes del bloque 2.
 
--- ─────────── 0000_init.sql ───────────
+-- ─── 0000_init.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  SISTEMA DENTAL — Migración cero
 --  Fort Knox desde la línea uno:
@@ -197,7 +193,7 @@ revoke update, delete on public.activity_log from authenticated, anon;
 -- ══════════════════════════════════════════════════════════════════════
 
 
--- ─────────── 0001_dashboard.sql ───────────
+-- ─── 0001_dashboard.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 2 — Dashboard
 --  Tablas mínimas viables para poblar los KPIs, la banda de citas y el
@@ -398,7 +394,7 @@ insert into public.activity_log (actor_id, action, entity, meta, created_at) val
   (null, 'registró nuevo paciente VIP Starling Marte', 'patient',     '{"actor":"Dra. Patricia Read"}',      now() - interval '6 hours');
 
 
--- ─────────── 0002_patients.sql ───────────
+-- ─── 0002_patients.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 3 — Pacientes (CRM completo)
 --  Amplía patients con el expediente completo. RLS + FORCE ya activos
@@ -612,7 +608,7 @@ on conflict (cedula) where cedula is not null do nothing;
 drop function if exists public.demo_cedula(bigint);
 
 
--- ─────────── 0003_appointment_status.sql ───────────
+-- ─── 0003_appointment_status.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 4 — Estados de cita (parte 1/2)
 --  Se añaden los valores nuevos del enum en su PROPIA migración: Postgres

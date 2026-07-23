@@ -1,9 +1,6 @@
--- ══════════════════════════════════════════════════════════════════
---  APLICACIÓN MANUAL — CORRIDA 2 de 3   (migraciones 0004 → 0008)
---  Corre esto DESPUÉS de que la corrida 1 haya terminado sin error.
--- ══════════════════════════════════════════════════════════════════
+-- APLICACIÓN MANUAL — CORRIDA 2 de 3 (0004 → 0008). Corre después del bloque 1.
 
--- ─────────── 0004_appointments.sql ───────────
+-- ─── 0004_appointments.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 4 — Citas y Calendario (parte 2/2)
 --  Amplía appointments, añade anti-solapamiento por odontólogo, políticas
@@ -138,7 +135,7 @@ cross join slots
 where extract(dow from d.f) <> 0;  -- sin domingos
 
 
--- ─────────── 0005_clinical.sql ───────────
+-- ─── 0005_clinical.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 5 — Historia Clínica
 --  Expediente clínico por visita. Inmutable una vez FIRMADO: las
@@ -285,7 +282,8 @@ end $$;
 --  SEED — historias clínicas para 15 pacientes, varias visitas por meses
 -- ══════════════════════════════════════════════════════════════════════
 with pac as (
-  select unnest(array[
+  select p.id, p.pidx
+  from unnest(array[
     '00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002',
     '00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000004',
     '00000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000006',
@@ -340,10 +338,10 @@ select
   ])[1 + ((pac.pidx * 2 + v.n) % 6)],
   (current_date - ((v.n - 1) * 45 + (pac.pidx * 2))::int + 180),
   true
-from pac cross join visitas;
+from pac cross join visitas as v;
 
 
--- ─────────── 0006_odontogram.sql ───────────
+-- ─── 0006_odontogram.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 6 — Odontograma interactivo
 --  Estado dental por pieza (FDI), historial inmutable por diente y
@@ -499,7 +497,7 @@ insert into public.odontogram_snapshots (patient_id, fecha, etiqueta, snapshot) 
      {"fdi":48,"estado":"ausente","superficies":[]}]'::jsonb);
 
 
--- ─────────── 0007_anatomy.sql ───────────
+-- ─── 0007_anatomy.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 7 — Diagrama anatómico del diente
 --  Marcas de afectación por zona anatómica (esmalte, dentina, pulpa,
@@ -607,7 +605,7 @@ from public.anatomy_marks
 where patient_id = '00000000-0000-0000-0000-000000000001';
 
 
--- ─────────── 0008_invoice_status.sql ───────────
+-- ─── 0008_invoice_status.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 8 — Facturación (parte 1/2)
 --  Añade el estado 'pagada_parcial' al enum en su PROPIA migración

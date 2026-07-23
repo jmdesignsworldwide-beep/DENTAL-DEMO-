@@ -144,7 +144,8 @@ end $$;
 --  SEED — historias clínicas para 15 pacientes, varias visitas por meses
 -- ══════════════════════════════════════════════════════════════════════
 with pac as (
-  select unnest(array[
+  select p.id, p.pidx
+  from unnest(array[
     '00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002',
     '00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000004',
     '00000000-0000-0000-0000-000000000005','00000000-0000-0000-0000-000000000006',
@@ -199,4 +200,4 @@ select
   ])[1 + ((pac.pidx * 2 + v.n) % 6)],
   (current_date - ((v.n - 1) * 45 + (pac.pidx * 2))::int + 180),
   true
-from pac cross join visitas;
+from pac cross join visitas as v;

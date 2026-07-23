@@ -1,9 +1,6 @@
--- ══════════════════════════════════════════════════════════════════
---  APLICACIÓN MANUAL — CORRIDA 3 de 3   (migraciones 0009 → 0016)
---  Corre esto DESPUÉS de que la corrida 2 haya terminado sin error.
--- ══════════════════════════════════════════════════════════════════
+-- APLICACIÓN MANUAL — CORRIDA 3 de 3 (0009 → 0016). Corre después del bloque 2.
 
--- ─────────── 0009_billing.sql ───────────
+-- ─── 0009_billing.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 8 — Facturación (parte 2/2)
 --  Facturas con NCF simulado (B01/B02), ítems, pagos y secuencias NCF.
@@ -231,7 +228,7 @@ revoke update, delete on public.invoice_items from authenticated, anon;
 revoke update, delete on public.payments      from authenticated, anon;
 
 
--- ─────────── 0010_treatments.sql ───────────
+-- ─── 0010_treatments.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 9 — Catálogo de tratamientos
 --  Alimenta el selector de citas y los ítems de factura. RLS + FORCE.
@@ -359,7 +356,7 @@ insert into public.treatments (nombre, descripcion, categoria, duracion_min, pre
 on conflict do nothing;
 
 
--- ─────────── 0011_inventory.sql ───────────
+-- ─── 0011_inventory.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 10 — Inventario de materiales
 --  Materiales, proveedores, movimientos (entrada/salida) inmutables y
@@ -604,7 +601,7 @@ join public.materials mat on mat.nombre = x.mat
 on conflict (treatment_id, material_id) do nothing;
 
 
--- ─────────── 0012_waiting_room.sql ───────────
+-- ─── 0012_waiting_room.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 12 — Sala de espera (kiosco TV)
 --  Configuración de clínica (consumida aquí y editada en T16), tokens de
@@ -709,7 +706,7 @@ insert into public.waiting_room_content (tipo, titulo, cuerpo, orden) values
 on conflict do nothing;
 
 
--- ─────────── 0013_patient_portal.sql ───────────
+-- ─── 0013_patient_portal.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 13 — Portal del Paciente (mockup móvil)
 --  Módulo visual: el portal se muestra DENTRO del sistema al personal.
@@ -890,7 +887,7 @@ from saldadas s
 where not exists (select 1 from public.payments p where p.invoice_id = s.id);
 
 
--- ─────────── 0014_staff_payroll.sql ───────────
+-- ─── 0014_staff_payroll.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 14 — Personal y Nómina
 --  Roster del equipo (perfiles, salario, comisión, horario), ausencias y
@@ -1048,7 +1045,7 @@ from (values
 on conflict (staff_id, periodo) do nothing;
 
 
--- ─────────── 0015_notifications.sql ───────────
+-- ─── 0015_notifications.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 15 — Centro de Notificaciones
 --  Feed de la clínica (visible al personal activo) con estado de lectura,
@@ -1144,7 +1141,7 @@ values
 on conflict do nothing;
 
 
--- ─────────── 0016_settings.sql ───────────
+-- ─── 0016_settings.sql ───
 -- ══════════════════════════════════════════════════════════════════════
 --  TANDA 16 — Configuración (control total del sistema)
 --  Amplía clinic_settings con identidad, horarios y config de citas;
@@ -1265,16 +1262,9 @@ create policy ncf_sequences_update on public.ncf_sequences
 grant select, update on public.ncf_sequences to authenticated;
 
 
--- ══════════════════════════════════════════════════════════════════
---  RED DE SEGURIDAD: buckets privados (ya se crean en 0002/0005)
--- ══════════════════════════════════════════════════════════════════
-insert into storage.buckets (id, name, public) values ('patient-photos', 'patient-photos', false) on conflict (id) do nothing;
-insert into storage.buckets (id, name, public) values ('clinical-files',  'clinical-files',  false) on conflict (id) do nothing;
-
--- ══════════════════════════════════════════════════════════════════
---  ACTIVAR TU USUARIO OWNER  — ⚠️ CAMBIA el correo y el nombre por los tuyos.
---  Requiere haber creado tu usuario en Authentication → Users.
--- ══════════════════════════════════════════════════════════════════
-update public.profiles
-   set rol = 'owner', activo = true, nombre = 'Dra. Nombre Apellido'
- where id = (select id from auth.users where email = 'TU-CORREO@ejemplo.com');
+-- Red de seguridad: buckets privados
+insert into storage.buckets (id, name, public) values ('patient-photos','patient-photos',false) on conflict (id) do nothing;
+insert into storage.buckets (id, name, public) values ('clinical-files','clinical-files',false) on conflict (id) do nothing;
+-- ⚠️ ACTIVAR TU OWNER — cambia el correo/nombre:
+update public.profiles set rol='owner', activo=true, nombre='Dra. Nombre Apellido'
+ where id = (select id from auth.users where email='TU-CORREO@ejemplo.com');
