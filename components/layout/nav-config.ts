@@ -41,7 +41,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Tratamientos", href: "/tratamientos", icon: Stethoscope, ready: true, tanda: 9 },
   { label: "Inventario", href: "/inventario", icon: Package, ready: true, tanda: 10, roles: ["owner", "recepcionista", "asistente"] },
   { label: "Reportes", href: "/reportes", icon: BarChart3, ready: true, tanda: 11, roles: ["owner"] },
-  { label: "Sala de Espera", href: "/sala", icon: Tv, ready: false, tanda: 12 },
+  { label: "Sala de Espera", href: "/sala-espera", icon: Tv, ready: true, tanda: 12 },
   { label: "Portal Paciente", href: "/portal", icon: Smartphone, ready: false, tanda: 13 },
   { label: "Personal y Nómina", href: "/personal", icon: UserCog, ready: false, tanda: 14, roles: ["owner"] },
   { label: "Notificaciones", href: "/notificaciones", icon: Bell, ready: false, tanda: 15 },

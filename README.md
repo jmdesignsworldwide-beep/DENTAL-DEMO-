@@ -92,6 +92,14 @@ supabase/
    - Inventario: aplica `0011_inventory.sql`. Proveedores, 55 materiales
      (algunos bajo mínimo para que las alertas se vean vivas), movimientos
      inmutables y recetas de consumo por tratamiento.
+   - Sala de espera: aplica `0012_waiting_room.sql`. Añade la configuración de
+     la clínica (singleton `clinic_settings`), los tokens de pantalla
+     (`screen_tokens`, siembra el token demo `DEMO-SALA-2026`) y el contenido
+     rotativo (`waiting_room_content`, 8 consejos/anuncios reales). Todas con
+     RLS + FORCE. El kiosco TV en `/sala-espera` se autentica por token (acceso
+     de solo lectura, sin credenciales de usuario) o por sesión del personal, y
+     el servidor devuelve **solo** los campos mínimos de la sala vía cliente
+     admin tras validar el token.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
