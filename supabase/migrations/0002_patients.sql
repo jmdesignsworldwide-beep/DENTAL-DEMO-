@@ -205,7 +205,7 @@ from (values
   ('Rafelina Disla', 22), ('Junior Alcántara', 23), ('Yokasta Feliz', 24),
   ('Domingo Antonio Pérez', 25)
 ) as d(nombre, i)
-on conflict (cedula) do nothing;
+on conflict (cedula) where cedula is not null do nothing;
 
 -- El helper era solo para el seed: se elimina para no dejar superficie extra.
 drop function if exists public.demo_cedula(bigint);
