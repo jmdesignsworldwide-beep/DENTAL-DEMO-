@@ -24,6 +24,7 @@ import {
   Lock,
   Power,
   StickyNote,
+  ChevronRight,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -78,12 +79,14 @@ export function ProfileView({
   fotoUrl,
   canEdit,
   canSeeIncome,
+  canSeeClinical,
 }: {
   patient: PatientOverview;
   historial: TreatmentRow[];
   fotoUrl: string | null;
   canEdit: boolean;
   canSeeIncome: boolean;
+  canSeeClinical?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -354,17 +357,33 @@ export function ProfileView({
                   <CardTitle>Módulos vinculados</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {modulos.map((m) => (
-                    <div
-                      key={m.label}
-                      title={`Disponible en la Tanda ${m.tanda}`}
-                      className="flex cursor-not-allowed items-center gap-3 rounded-xl border border-dashed border-border px-3 py-2.5 text-sm font-medium text-muted/70"
-                    >
-                      <m.icon className="h-4 w-4 shrink-0" />
-                      <span className="flex-1">{m.label}</span>
-                      <Lock className="h-3.5 w-3.5" />
-                    </div>
-                  ))}
+                  {modulos.map((m) => {
+                    const isHistoria = m.label === "Historia clínica";
+                    if (isHistoria && canSeeClinical) {
+                      return (
+                        <Link
+                          key={m.label}
+                          href={`/historia/${patient.id}`}
+                          className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-semibold text-fg transition-colors hover:border-clinical-300 hover:bg-clinical-50/50 dark:hover:bg-clinical-900/20"
+                        >
+                          <m.icon className="h-4 w-4 shrink-0 text-clinical" />
+                          <span className="flex-1">{m.label}</span>
+                          <ChevronRight className="h-4 w-4 text-muted" />
+                        </Link>
+                      );
+                    }
+                    return (
+                      <div
+                        key={m.label}
+                        title={`Disponible en la Tanda ${m.tanda}`}
+                        className="flex cursor-not-allowed items-center gap-3 rounded-xl border border-dashed border-border px-3 py-2.5 text-sm font-medium text-muted/70"
+                      >
+                        <m.icon className="h-4 w-4 shrink-0" />
+                        <span className="flex-1">{m.label}</span>
+                        <Lock className="h-3.5 w-3.5" />
+                      </div>
+                    );
+                  })}
                 </CardContent>
               </Card>
             </StaggerItem>

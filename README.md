@@ -71,6 +71,10 @@ supabase/
      por separado, `0004_appointments.sql`. Postgres no permite usar un valor
      de enum recién creado en la misma transacción, por eso van en dos archivos
      — no los combines en una sola ejecución del SQL Editor.
+   - Historia clínica: aplica `0005_clinical.sql`. Intenta crear el bucket
+     privado **`clinical-files`** y sus políticas; si tu conexión no tiene
+     permisos sobre `storage`, créalo manualmente (privado). Las entradas
+     firmadas son inmutables a nivel de base de datos.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
