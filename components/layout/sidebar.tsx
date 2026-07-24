@@ -11,13 +11,15 @@ import { cn } from "@/lib/utils";
 
 export function SidebarNav({
   role,
+  esRealOwner = false,
   onNavigate,
 }: {
   role: Role;
+  esRealOwner?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const items = visibleFor(role);
+  const items = visibleFor(role, esRealOwner);
 
   return (
     <div className="flex h-full flex-col">
