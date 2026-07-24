@@ -66,7 +66,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Usuario autenticado que visita /login → mándalo a la app.
-  if (user && path === "/login") {
+  // PERO nunca cuando /login trae un ?error (p. ej. cuenta inactiva): ese es el
+  // destino al que requireActiveUser manda a un usuario con sesión pero sin
+  // acceso; rebotarlo a /dashboard crea un bucle infinito de redirecciones.
+  if (user && path === "/login" && !request.nextUrl.searchParams.has("error")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

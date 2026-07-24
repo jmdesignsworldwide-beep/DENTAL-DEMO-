@@ -188,13 +188,26 @@ supabase/
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
-4. Crear el usuario owner en **Authentication → Users**, y activarlo una vez:
+4. Crear el usuario owner en **Authentication → Users**, y activarlo una vez.
+
+   > ⚠️ El trigger anti-escalada `profiles_guard_update` (correctamente) impide
+   > cambiar `rol`/`activo` a quien no es owner — y en el SQL Editor `auth.uid()`
+   > es nulo, así que un `UPDATE` normal falla con *"No autorizado a modificar
+   > rol, activo o id"*. Para **activar el primer owner** hay que desactivar el
+   > trigger solo durante ese `UPDATE` (el SQL Editor corre como dueño de la tabla):
 
    ```sql
+   alter table public.profiles disable trigger profiles_guard_update;
+
    update public.profiles
       set rol = 'owner', activo = true, nombre = 'Dra. Nombre Apellido'
     where id = (select id from auth.users where email = 'owner@clinica.do');
+
+   alter table public.profiles enable trigger profiles_guard_update;
    ```
+
+   Una vez que exista un owner activo, ese owner ya puede activar/cambiar el
+   rol del resto del personal desde la app, sin tocar SQL.
 
 5. Arrancar:
 
