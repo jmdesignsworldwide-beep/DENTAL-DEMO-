@@ -3,11 +3,17 @@ import { ShieldCheck, Sparkles, Activity } from "lucide-react";
 import { Aurora } from "@/components/brand/aurora";
 import { LogoMark } from "@/components/brand/logo";
 import { LoginForm } from "./login-form";
+import { InactiveNotice } from "./inactive-notice";
 
 export const metadata: Metadata = { title: "Ingreso" };
 export const dynamic = "force-dynamic";
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams?: { error?: string };
+}) {
+  const inactivo = searchParams?.error === "inactivo";
   return (
     <div className="relative min-h-screen overflow-hidden bg-bg">
       <Aurora />
@@ -78,6 +84,8 @@ export default function LoginPage() {
                   Ingresa tus credenciales para acceder al sistema.
                 </p>
               </div>
+
+              {inactivo && <InactiveNotice />}
 
               <LoginForm />
 
