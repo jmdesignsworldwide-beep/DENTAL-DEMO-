@@ -162,6 +162,29 @@ supabase/
      WhatsApp. El diagnóstico clínico se filtra en el servidor para
      recepción/asistente. Desde el odontograma, "Crear presupuesto" arranca un
      plan con la pieza seleccionada precargada.
+   - Comunicaciones: aplica `0018_communications.sql`. Añade
+     `message_templates` (11 plantillas en español dominicano),
+     `scheduled_messages` (cola de envío), `communication_log` (registro
+     legal **inmutable**: solo INSERT/SELECT, UPDATE/DELETE bloqueados),
+     `patient_communication_prefs` y `appointment_confirmations` (tokens de
+     confirmación sin login). Todas con RLS + FORCE. El **opt-out del paciente
+     se fuerza a nivel de base de datos**: un trigger impide programarle un
+     mensaje si pidió no recibir por ese canal — imposible saltárselo desde la
+     app. Se integra con citas, presupuestos y facturas **sin rehacer nada**.
+     Siembra ~2 meses de mensajes coherentes con las citas reales, calibrados
+     para que el no-show baje de ~35% (sin recordatorio) a ~5% (con
+     recordatorio). El motor programa solo la confirmación + recordatorios
+     24h/2h al crear una cita (`lib/comm-engine.ts`); el envío va por `wa.me`
+     (un clic desde la cola de hoy) con la capa de canal abstraída para
+     conectar la WhatsApp Business API sin reescribir el módulo
+     (`lib/comm-sender.ts`). El paciente confirma desde un enlace firmado
+     (`/confirmar/[token]`, sin login, validado con el cliente admin igual que
+     el kiosco); al confirmar, la cita pasa a `confirmada` y el personal recibe
+     una notificación. `/comunicaciones` reúne cola de hoy, programados,
+     historial legal, editor de plantillas con preview en vivo, preferencias/
+     opt-out y un **panel de impacto** (Recharts) que estima el dinero
+     recuperado — el número que cierra la venta. El dashboard suma los
+     mensajes por enviar hoy.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 

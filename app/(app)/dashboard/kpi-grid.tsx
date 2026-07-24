@@ -8,6 +8,7 @@ import {
   ClipboardList,
   UserCheck,
   FileSpreadsheet,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -88,7 +89,7 @@ export function KPIGrid({
     },
   ];
 
-  // 5ª tarjeta: monto en presupuestos pendientes (solo con acceso a finanzas).
+  // Tarjetas de finanzas/operación (solo con acceso: owner / recepcionista).
   if (canSeeIncome && kpis.presupuestosPendientes !== null) {
     defs.push({
       label: "En presupuestos pendientes",
@@ -99,6 +100,17 @@ export function KPIGrid({
       modulo: "Presupuestos",
       tanda: 19,
       href: "/presupuestos?estado=presentado",
+    });
+  }
+  if (canSeeIncome && kpis.mensajesHoy !== null) {
+    defs.push({
+      label: "Mensajes por enviar hoy",
+      value: kpis.mensajesHoy,
+      icon: MessageSquare,
+      accent: "clinical",
+      modulo: "Comunicaciones",
+      tanda: 20,
+      href: "/comunicaciones",
     });
   }
 
@@ -117,7 +129,11 @@ export function KPIGrid({
     <div
       className={cn(
         "grid grid-cols-2 gap-3 sm:gap-4",
-        defs.length >= 5 ? "lg:grid-cols-5" : "lg:grid-cols-4",
+        defs.length >= 6
+          ? "lg:grid-cols-3"
+          : defs.length === 5
+            ? "lg:grid-cols-5"
+            : "lg:grid-cols-4",
       )}
     >
       {defs.map((d) =>
