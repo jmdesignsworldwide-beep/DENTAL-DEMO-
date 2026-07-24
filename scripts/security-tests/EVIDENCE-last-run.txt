@@ -1,0 +1,66 @@
+Pager usage is off.
+Timing is off.
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+══════════ B1 · anon key contra todas las tablas (todas → vacío/denegado) ══════════
+psql:/home/pgtest/mig/10_attacks.sql:77: NOTICE:  B1 · anon no leyó NI UNA fila de NINGUNA de las 41 tablas: PASS
+DO
+══════════ B2 · Cruce de roles — LECTURA ══════════
+                 prueba                  | resultado 
+-----------------------------------------+-----------
+ B2 asistente → communication_log        | rows=0
+ B2 asistente → scheduled_messages       | rows=0
+ B2 asistente → patient_comm_prefs       | rows=0
+ B2 asistente → invoices                 | rows=0
+ B2 asistente → payments                 | rows=0
+ B2 recepción → clinical_records         | rows=0
+ B2 recepción → dx presupuesto (clínico) | rows=0
+ B2 asistente → dx presupuesto (clínico) | rows=0
+ B2 asistente → tooth_states (permitido) | rows=16
+(9 rows)
+
+══════════ B3 · Cruce de roles — ESCRITURA (todas → BLOQUEADO) ══════════
+                    prueba                    |                                                 resultado                                                 
+----------------------------------------------+-----------------------------------------------------------------------------------------------------------
+ B3 asistente crea factura                    | BLOQUEADO(42501): new row violates row-level security policy for table "invoices"
+ B3 asistente inserta pago                    | BLOQUEADO(42501): new row violates row-level security policy for table "payments"
+ B3 recepción firma historia clínica          | BLOQUEADO(42501): new row violates row-level security policy for table "clinical_records"
+ B3 dentista cambia rol de otro perfil        | BLOQUEADO (RLS filtró: 0 filas afectadas)
+ B3 asistente edita catálogo de precios       | BLOQUEADO (RLS filtró: 0 filas afectadas)
+ B3 mensaje a paciente con OPT-OUT (guard DB) | BLOQUEADO(P0001): El paciente solicitó no recibir comunicaciones (opt-out 2026-07-22 05:56:24.404584+00).
+(6 rows)
+
+══════════ B4 · Usuario DESACTIVADO (activo=false) — todo denegado ══════════
+              prueba              |                                       resultado                                       
+----------------------------------+---------------------------------------------------------------------------------------
+ B4 inactivo → patients (lectura) | rows=0
+ B4 inactivo crea cita            | BLOQUEADO(42501): new row violates row-level security policy for table "appointments"
+(2 rows)
+
+══════════ B5 · INMUTABILIDAD — SQL directo, privilegios elevados (los 7 → error) ══════════
+INSERT 0 1
+                      prueba                      |                                                    resultado                                                     
+--------------------------------------------------+------------------------------------------------------------------------------------------------------------------
+ B5 UPDATE activity_log                           | BLOQUEADO(P0001): activity_log es inmutable: operación UPDATE bloqueada
+ B5 DELETE activity_log                           | BLOQUEADO(P0001): activity_log es inmutable: operación DELETE bloqueada
+ B5 UPDATE historia clínica FIRMADA               | BLOQUEADO(P0001): Entrada firmada e inmutable: crea una enmienda en lugar de editar.
+ B5 DELETE clinical_attachments                   | BLOQUEADO(P0001): Los adjuntos clínicos son inmutables: operación DELETE bloqueada
+ B5 UPDATE factura emitida                        | BLOQUEADO(P0001): Factura emitida inmutable: solo cambia estado/pago/motivo.
+ B5 UPDATE/ DELETE communication_log              | BLOQUEADO(P0001): La bitácora de comunicación es inmutable: operación DELETE bloqueada
+ B5 UPDATE precio de ítem de presupuesto ACEPTADO | BLOQUEADO(P0001): Ítem ya aceptado: precio y descripción son inmutables. Crea una versión nueva del presupuesto.
+(7 rows)
+
+══════════ B7 · RPCs / funciones: EXECUTE de anon revocado en funciones sensibles ══════════
+       funcion        | anon_puede_ejecutar |       config       
+----------------------+---------------------+--------------------
+ guard_profile_update | f                   | search_path=public
+ handle_new_user      | f                   | search_path=public
+ is_active            | f                   | search_path=public
+ is_owner             | f                   | search_path=public
+ my_role              | f                   | search_path=public
+ next_ncf             | f                   | search_path=public
+(6 rows)
+
+ROLLBACK
+── Fin de ataques. Todo revertido (ROLLBACK). Interpretar arriba: PASS = el ataque falló. ──

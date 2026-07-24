@@ -264,11 +264,24 @@ export async function getBudget(id: string): Promise<BudgetFull | null> {
     const { data: b, error } = await supabase
       .from("treatment_budgets")
       .select(
-        "id, patient_id, titulo, diagnostico_general, estado, fecha_vencimiento, descuento_global, total_estimado, notas, motivo_rechazo, version, version_de, odontologo_nombre, created_at, presentado_at, respondido_at, patients(nombre, cedula, telefono)",
+        "id, patient_id, titulo, estado, fecha_vencimiento, descuento_global, total_estimado, notas, motivo_rechazo, version, version_de, odontologo_nombre, created_at, presentado_at, respondido_at, patients(nombre, cedula, telefono)",
       )
       .eq("id", id)
       .single();
     if (error || !b) return null;
+
+    // El diagnóstico clínico vive en una tabla aparte cuya RLS solo deja leer
+    // a owner/dentista (endurecimiento Tanda 21). Recepción/asistente reciben
+    // null desde la propia base de datos, no solo por filtro de la app.
+    let diagnostico: string | null = null;
+    if (clinical) {
+      const { data: cl } = await supabase
+        .from("treatment_budget_clinical")
+        .select("diagnostico_general")
+        .eq("budget_id", id)
+        .maybeSingle();
+      diagnostico = (cl?.diagnostico_general as string | null) ?? null;
+    }
 
     const [itemsRes, eventsRes] = await Promise.all([
       supabase
@@ -327,9 +340,7 @@ export async function getBudget(id: string): Promise<BudgetFull | null> {
       paciente_cedula: pacObj?.cedula ?? null,
       paciente_telefono: pacObj?.telefono ?? null,
       titulo: b.titulo as string,
-      diagnostico_general: clinical
-        ? ((b.diagnostico_general as string | null) ?? null)
-        : null,
+      diagnostico_general: diagnostico,
       estado: b.estado as BudgetEstado,
       fecha_vencimiento: (b.fecha_vencimiento as string | null) ?? null,
       descuento_global: Number(b.descuento_global),
