@@ -74,7 +74,6 @@ export async function createBudget(
     .insert({
       patient_id: data.patientId,
       titulo,
-      diagnostico_general: (data.diagnostico ?? "").trim().slice(0, 1000) || null,
       odontologo_id: user.id,
       odontologo_nombre: (data.odontologo ?? user.nombre).trim().slice(0, 120),
       estado: "borrador",
@@ -85,6 +84,13 @@ export async function createBudget(
   if (error || !b) return { ok: false, error: "No se pudo crear el presupuesto." };
 
   const budgetId = b.id as string;
+  // El diagnóstico clínico va a su tabla protegida (solo owner/dentista).
+  const diag = (data.diagnostico ?? "").trim().slice(0, 1000);
+  if (diag) {
+    await supabase
+      .from("treatment_budget_clinical")
+      .insert({ budget_id: budgetId, diagnostico_general: diag });
+  }
   await logEvent(supabase, budgetId, "creado", "Presupuesto creado");
   await logActivity({
     action: `creó un presupuesto: ${titulo}`,
@@ -123,8 +129,6 @@ export async function updateBudgetMeta(
 
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (data.titulo !== undefined) patch.titulo = data.titulo.trim().slice(0, 120) || "Plan de tratamiento";
-  if (data.diagnostico !== undefined)
-    patch.diagnostico_general = data.diagnostico.trim().slice(0, 1000) || null;
   if (data.notas !== undefined) patch.notas = data.notas.trim().slice(0, 1000) || null;
   if (data.descuento_global !== undefined)
     patch.descuento_global = Math.max(0, money(data.descuento_global));
@@ -133,6 +137,18 @@ export async function updateBudgetMeta(
 
   const { error } = await supabase.from("treatment_budgets").update(patch).eq("id", id);
   if (error) return { ok: false, error: "No se pudo guardar." };
+
+  // El diagnóstico clínico se guarda en su tabla protegida (owner/dentista).
+  if (data.diagnostico !== undefined) {
+    await supabase.from("treatment_budget_clinical").upsert(
+      {
+        budget_id: id,
+        diagnostico_general: data.diagnostico.trim().slice(0, 1000) || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "budget_id" },
+    );
+  }
 
   if (data.descuento_global !== undefined) await recomputeTotal(supabase, id);
   revalidatePath(`/presupuestos/${id}`);
@@ -507,7 +523,7 @@ export async function newBudgetVersion(
   const supabase = createClient();
   const { data: src } = await supabase
     .from("treatment_budgets")
-    .select("patient_id, titulo, diagnostico_general, descuento_global, version, odontologo_nombre")
+    .select("patient_id, titulo, descuento_global, version, odontologo_nombre")
     .eq("id", id)
     .single();
   if (!src) return { ok: false, error: "Presupuesto no encontrado." };
@@ -517,7 +533,6 @@ export async function newBudgetVersion(
     .insert({
       patient_id: src.patient_id,
       titulo: `${(src.titulo as string).slice(0, 100)} (v${(src.version as number) + 1})`,
-      diagnostico_general: src.diagnostico_general,
       descuento_global: src.descuento_global,
       odontologo_id: user.id,
       odontologo_nombre: src.odontologo_nombre ?? user.nombre,
@@ -530,6 +545,18 @@ export async function newBudgetVersion(
     .single();
   if (error || !nb) return { ok: false, error: "No se pudo crear la versión." };
   const newId = nb.id as string;
+
+  // Copia el diagnóstico clínico a la versión nueva (tabla protegida).
+  const { data: cl } = await supabase
+    .from("treatment_budget_clinical")
+    .select("diagnostico_general")
+    .eq("budget_id", id)
+    .maybeSingle();
+  if (cl?.diagnostico_general) {
+    await supabase
+      .from("treatment_budget_clinical")
+      .insert({ budget_id: newId, diagnostico_general: cl.diagnostico_general });
+  }
 
   // Clona los ítems (todos vuelven a 'pendiente').
   const { data: items } = await supabase

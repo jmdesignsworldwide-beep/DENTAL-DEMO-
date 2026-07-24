@@ -232,11 +232,18 @@ para una tanda de mantenimiento.
 
 ### Auditoría de seguridad
 
-La verificación completa Fort Knox punto por punto, con evidencia, está en
-[`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md): 32/32 tablas con RLS+FORCE,
-autorización en servidor, storage privado con signed URLs, inmutabilidad por
-triggers, y el detalle de lo que la dueña debe probar contra la instancia en
-vivo (Security Advisor, revocación del PAT, ataques por API con la anon key).
+El checklist Fort Knox punto por punto está en
+[`docs/SECURITY-AUDIT.md`](docs/SECURITY-AUDIT.md).
+
+La auditoría **ejecutada** (Tanda 21) —no escrita, **probada**— está en
+[`docs/SECURITY-AUDIT-RESULTS.md`](docs/SECURITY-AUDIT-RESULTS.md): más de 30
+ataques corridos contra la base de datos simulando cada rol, con el rechazo
+exacto capturado como evidencia. Encontró y **corrigió 5 hallazgos reales**
+(`0019_security_hardening.sql` + fix del middleware). Es **repetible en un
+minuto** con [`scripts/security-tests/`](scripts/security-tests/) (`./run.sh`),
+en este y en cualquier proyecto futuro. Pendientes que requieren la instancia
+viva (Security Advisor, expiración de signed URLs, incógnito de producción)
+quedan marcados como tales — nada se marca cerrado sin la prueba.
 
 ## Deploy a Vercel
 
