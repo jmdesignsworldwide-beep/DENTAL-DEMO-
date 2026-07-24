@@ -105,3 +105,34 @@ Tras cada despliegue con cambios de esquema: Dashboard → **Advisors → Securi
 1. `supabase migration new …` por cada cambio de esquema (en un PR).
 2. Supabase → Integrations → conectar GitHub, production branch = `main`, directorio = `supabase`.
 3. Merge → Supabase aplica solo. Corre el Security Advisor. Listo.
+
+---
+
+## Auto-deploy de migraciones desde Vercel (sin SQL Editor)
+
+A partir de ahora las migraciones se aplican **solas** en el deploy de
+producción de Vercel — no hay que copiar-pegar en el SQL Editor.
+
+**Cómo funciona:** el script `vercel-build` (package.json) corre
+`scripts/migrate-on-deploy.mjs` antes de `next build`. En producción, ese
+script ejecuta `supabase db push`; en previews y local no toca la base.
+Si una migración falla, el deploy se aborta a propósito (no se publica la app
+contra un esquema a medias).
+
+### Configuración (una sola vez)
+
+1. **Vercel → Settings → Environment Variables** (scope **Production**), agrega:
+   - `SUPABASE_DB_URL` = la connection string del **Session pooler**
+     (Supabase → Project Settings → Database → Connection string → *Session
+     pooler*). Se usa el pooler porque es IPv4; la conexión "direct" es IPv6 y
+     el build de Vercel no la alcanza. El secreto vive en Vercel, nunca en el
+     código ni en el repo.
+2. **Supabase → SQL Editor**, corre **una sola vez** `scripts/adopt-migrations.sql`.
+   Esto le dice a Supabase qué migraciones ya aplicaste a mano (0000–0018) para
+   que `db push` no intente re-aplicarlas. Es el último SQL manual.
+3. Asegúrate de que en **Vercel → Settings → Build & Development Settings** el
+   "Build Command" esté en el valor por defecto (vacío) para que se use el
+   script `vercel-build`.
+
+Listo. Cada migración nueva que llegue a `main` se aplica sola en el próximo
+deploy de producción.
