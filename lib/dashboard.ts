@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import type { ActiveUser } from "@/lib/auth";
+import { getPendingBudgetAmount } from "@/lib/budgets";
 import { pctChange } from "@/lib/utils";
 
 export type AppointmentEstado =
@@ -46,6 +47,7 @@ export interface DashboardData {
     ingresosMesTrend: number | null;
     tratamientosPendientes: number;
     pacientesActivos: number;
+    presupuestosPendientes: number | null;
   };
   citasHoy: CitaHoy[];
   proximas: ProximaCita[];
@@ -62,6 +64,7 @@ const EMPTY: DashboardData = {
     ingresosMesTrend: null,
     tratamientosPendientes: 0,
     pacientesActivos: 0,
+    presupuestosPendientes: null,
   },
   citasHoy: [],
   proximas: [],
@@ -144,11 +147,12 @@ export async function getDashboardData(
         .limit(10),
     ]);
 
-    // Ingresos: solo si el rol tiene acceso (RLS también lo protege).
+    // Ingresos y presupuestos: solo si el rol tiene acceso (RLS también protege).
     let ingresosMes: number | null = null;
     let ingresosMesTrend: number | null = null;
+    let presupuestosPendientes: number | null = null;
     if (canSeeIncome) {
-      const [thisMonth, lastMonth] = await Promise.all([
+      const [thisMonth, lastMonth, budgetPending] = await Promise.all([
         supabase
           .from("invoices")
           .select("monto")
@@ -160,11 +164,13 @@ export async function getDashboardData(
           .eq("estado", "pagada")
           .gte("fecha", prevMonthStart)
           .lt("fecha", monthStart),
+        getPendingBudgetAmount(),
       ]);
       const sum = (rows: { monto: number }[] | null) =>
         (rows ?? []).reduce((a, r) => a + Number(r.monto), 0);
       ingresosMes = sum(thisMonth.data);
       ingresosMesTrend = pctChange(ingresosMes, sum(lastMonth.data));
+      presupuestosPendientes = budgetPending;
     }
 
     const pacientesMes = pacientesMesRes.count ?? 0;
@@ -215,6 +221,7 @@ export async function getDashboardData(
         ingresosMesTrend,
         tratamientosPendientes: pendientesRes.count ?? 0,
         pacientesActivos: pacientesActivosRes.count ?? 0,
+        presupuestosPendientes,
       },
       citasHoy,
       proximas,

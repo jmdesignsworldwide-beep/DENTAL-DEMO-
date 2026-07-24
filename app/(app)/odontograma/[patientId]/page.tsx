@@ -33,6 +33,7 @@ export default async function OdontogramaPacientePage({
 
   const canWrite =
     user.rol === "owner" || user.rol === "dentista" || user.rol === "asistente";
+  const canBudget = user.rol === "owner" || user.rol === "dentista";
 
   return (
     <OdontogramClient
@@ -42,6 +43,7 @@ export default async function OdontogramaPacientePage({
       fotoUrl={fotoUrl}
       data={data}
       canWrite={canWrite}
+      canBudget={canBudget}
     />
   );
 }

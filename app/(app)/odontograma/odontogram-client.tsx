@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Camera, History, Baby, User } from "lucide-react";
+import { ArrowLeft, Camera, History, Baby, User, FileSpreadsheet } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -17,7 +17,18 @@ import { OdontogramChart } from "./odontogram-chart";
 import { ToothPanel } from "./tooth-panel";
 import { Legend } from "./legend";
 import { saveSnapshot } from "./actions";
+import { createBudget, addBudgetItem } from "@/app/(app)/presupuestos/actions";
+import type { ToothStatus } from "@/lib/odontogram";
 import { cn } from "@/lib/utils";
+
+/** Sugerencia de servicio según el estado del diente seleccionado. */
+const SUGERENCIA: Partial<Record<ToothStatus, string>> = {
+  caries: "Resina compuesta",
+  extraccion_necesaria: "Extracción",
+  endodoncia: "Endodoncia",
+  corona: "Corona",
+  implante: "Implante dental",
+};
 
 export function OdontogramClient({
   patientId,
@@ -26,6 +37,7 @@ export function OdontogramClient({
   fotoUrl,
   data,
   canWrite,
+  canBudget,
 }: {
   patientId: string;
   patientNombre: string;
@@ -33,6 +45,7 @@ export function OdontogramClient({
   fotoUrl: string | null;
   data: OdontogramData;
   canWrite: boolean;
+  canBudget?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -42,6 +55,7 @@ export function OdontogramClient({
   const [snapModal, setSnapModal] = React.useState(false);
   const [etiqueta, setEtiqueta] = React.useState("");
   const [saving, startSave] = React.useTransition();
+  const [creatingBudget, setCreatingBudget] = React.useState(false);
 
   const viewingSnapshot = snapId !== "actual";
   const activeSnap = data.snapshots.find((s) => s.id === snapId);
@@ -57,6 +71,38 @@ export function OdontogramClient({
   }, [viewingSnapshot, activeSnap, data.states]);
 
   const selectedState = selectedFdi != null ? states[selectedFdi] : undefined;
+
+  async function crearPresupuesto() {
+    setCreatingBudget(true);
+    const diag =
+      selectedFdi != null && selectedState
+        ? `Hallazgo en pieza ${selectedFdi}: ${selectedState.estado.replace(/_/g, " ")}.`
+        : undefined;
+    const res = await createBudget({
+      patientId,
+      titulo: "Plan de tratamiento",
+      diagnostico: diag,
+    });
+    if (res.ok && res.id) {
+      // Si hay un diente seleccionado con hallazgo tratable, precarga un servicio.
+      if (selectedFdi != null && selectedState) {
+        const sugerencia = SUGERENCIA[selectedState.estado];
+        if (sugerencia) {
+          await addBudgetItem(res.id, {
+            descripcion: `${sugerencia} — pieza ${selectedFdi}`,
+            diente_fdi: selectedFdi,
+            cantidad: 1,
+            precio_unitario: 0,
+          });
+        }
+      }
+      toast.success("Presupuesto creado", "Completa los servicios del plan.");
+      router.push(`/presupuestos/${res.id}`);
+    } else {
+      setCreatingBudget(false);
+      toast.error("No se pudo crear", res.error);
+    }
+  }
 
   function doSnapshot() {
     startSave(async () => {
@@ -141,6 +187,16 @@ export function OdontogramClient({
           {canWrite && !viewingSnapshot && (
             <Button size="sm" variant="secondary" icon={Camera} onClick={() => setSnapModal(true)}>
               Snapshot
+            </Button>
+          )}
+          {canBudget && !viewingSnapshot && (
+            <Button
+              size="sm"
+              icon={FileSpreadsheet}
+              loading={creatingBudget}
+              onClick={crearPresupuesto}
+            >
+              Crear presupuesto
             </Button>
           )}
         </div>

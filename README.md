@@ -140,6 +140,28 @@ supabase/
      ajuste porcentual masivo (antes/después), gestionar usuarios con **matriz
      de permisos** derivada del acceso real, administrar tokens de pantalla,
      secuencias NCF y exportar la bitácora de auditoría a CSV/PDF.
+   - Presupuestos: aplica `0017_treatment_budgets.sql`. Añade
+     `treatment_budgets`, `treatment_budget_items` y `treatment_budget_events`
+     (bitácora inmutable), todas con RLS + FORCE. Se integra con pacientes,
+     catálogo, odontograma, citas y facturación **sin rehacer nada**. Los
+     precios del seed se toman del catálogo real por nombre, así el demo queda
+     siempre consistente. Siembra 13 presupuestos en todos los estados del ciclo
+     de venta (borrador, presentado, aceptado, aceptado parcial, rechazado,
+     vencido, completado), **uno con comparativa de opciones** (grupo
+     `opcion_grupo`) y **uno versionado** (v2 de un plan rechazado, sin
+     sobrescribir el histórico). Inmutabilidad a nivel DB: los ítems aceptados
+     no cambian de precio ni descripción (exige una versión nueva) y no se
+     borran; la bitácora bloquea UPDATE/DELETE. La página `/presupuestos` trae
+     KPIs (monto pendiente, tasa de aceptación), panel de seguimiento con
+     countdown de vencimiento, y el constructor por fases desde el catálogo. El
+     **modo presentación** (`/presupuestos/[id]/presentar`) muestra el
+     odontograma con las piezas del plan resaltadas, la comparativa de opciones
+     y la aceptación total/parcial ítem por ítem; al aceptar, genera **citas**
+     y **factura** reutilizando los módulos existentes. Imprimible en
+     `/imprimir/presupuesto/[id]` con membrete, fases, firmas y compartir por
+     WhatsApp. El diagnóstico clínico se filtra en el servidor para
+     recepción/asistente. Desde el odontograma, "Crear presupuesto" arranca un
+     plan con la pieza seleccionada precargada.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 
