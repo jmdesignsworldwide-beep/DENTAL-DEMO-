@@ -185,6 +185,23 @@ supabase/
      opt-out y un **panel de impacto** (Recharts) que estima el dinero
      recuperado — el número que cierra la venta. El dashboard suma los
      mensajes por enviar hoy.
+   - Acceso demos: aplica `0021_demo_access.sql`. Capa de cuentas temporales
+     para entregar el sistema a prospectos. Añade a `profiles` los campos de
+     cuenta demo (`es_demo`, `demo_expira_at`, `ultimo_acceso`) y **centraliza
+     la expiración en `is_active()`/`my_role()`**: una cuenta demo vencida queda
+     muerta a nivel de base de datos — no puede leer ni escribir nada por API,
+     no solo en la UI. `is_owner()` pasa a ser "owner REAL" (excluye demos), y
+     las áreas de Configuración/Usuarios/Nómina llevan `not is_demo()`, así el
+     demo ve todo el sistema pero no toca lo sensible. El guard anti-escalada
+     protege también los campos de la cuenta (un demo no puede auto-extenderse).
+     Incluye `reset_demo_data()` (SECURITY DEFINER, solo owner real) que
+     restaura pacientes/citas/facturas/presupuestos/mensajes a una **foto
+     limpia** (`demo_baseline`) con un botón, preservando configuración, cuentas
+     y auditoría. El panel vive en `/acceso-demos` (solo owner real): crear
+     cuentas con vigencia (7/15/30 días o fecha), ver días restantes y último
+     acceso, extender y revocar al instante. Al vencer, el login muestra el
+     contacto de JM Nexus Designs. Cobertura de auditoría en
+     `scripts/security-tests/20_demo_attacks.sql`.
    - **Revocar el PAT inmediatamente.** Nunca dejarlo en chat, logs ni
      connection strings permanentes.
 

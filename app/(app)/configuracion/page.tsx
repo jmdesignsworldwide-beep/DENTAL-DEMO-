@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { requireRole } from "@/lib/auth";
+import { requireRealOwner } from "@/lib/auth";
 import { getSettingsData } from "@/lib/settings";
 import { ConfiguracionClient } from "./configuracion-client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Configuración" };
 export const dynamic = "force-dynamic";
 
 async function Data() {
-  await requireRole(["owner"]);
+  await requireRealOwner();
   const data = await getSettingsData();
   return <ConfiguracionClient data={data} />;
 }

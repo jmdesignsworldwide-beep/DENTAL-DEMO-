@@ -15,6 +15,7 @@ import {
   UserCog,
   Bell,
   Settings,
+  KeyRound,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/auth";
@@ -27,6 +28,8 @@ export interface NavItem {
   roles?: Role[];
   /** Módulo aún no construido → deshabilitado con señal visual. */
   ready?: boolean;
+  /** Solo para el owner REAL (no cuentas demo con rol owner). */
+  realOwnerOnly?: boolean;
   tanda: number;
 }
 
@@ -47,9 +50,18 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Portal Paciente", href: "/portal-paciente", icon: Smartphone, ready: true, tanda: 13 },
   { label: "Personal y Nómina", href: "/personal", icon: UserCog, ready: true, tanda: 14, roles: ["owner"] },
   { label: "Notificaciones", href: "/notificaciones", icon: Bell, ready: true, tanda: 15 },
-  { label: "Configuración", href: "/configuracion", icon: Settings, ready: true, tanda: 16, roles: ["owner"] },
+  { label: "Configuración", href: "/configuracion", icon: Settings, ready: true, tanda: 16, roles: ["owner"], realOwnerOnly: true },
+  { label: "Acceso Demos", href: "/acceso-demos", icon: KeyRound, ready: true, tanda: 22, roles: ["owner"], realOwnerOnly: true },
 ];
 
-export function visibleFor(role: Role): NavItem[] {
-  return NAV_ITEMS.filter((i) => !i.roles || i.roles.includes(role));
+/**
+ * Ítems visibles para el rol dado. Los marcados `realOwnerOnly` solo se
+ * muestran al owner REAL — nunca a una cuenta demo (que tiene rol 'owner').
+ */
+export function visibleFor(role: Role, esRealOwner = false): NavItem[] {
+  return NAV_ITEMS.filter((i) => {
+    if (i.roles && !i.roles.includes(role)) return false;
+    if (i.realOwnerOnly && !esRealOwner) return false;
+    return true;
+  });
 }
