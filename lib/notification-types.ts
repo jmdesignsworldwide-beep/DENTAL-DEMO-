@@ -24,6 +24,8 @@ export const NOTIF_TYPES: Record<string, NotifType> = {
   stock_agotado: { tipo: "stock_agotado", label: "Stock agotado", color: "#EF4444", prioridad: "alta", accion: "registrar_reposicion", grupo: "materiales agotados" },
   seguimiento: { tipo: "seguimiento", label: "Seguimiento pendiente", color: "#8B5CF6", prioridad: "media", grupo: "seguimientos pendientes" },
   cita_cancelada: { tipo: "cita_cancelada", label: "Cita cancelada / no-show", color: "#EF4444", prioridad: "media", grupo: "citas canceladas" },
+  cita_confirmada: { tipo: "cita_confirmada", label: "Cita confirmada por el paciente", color: "#00C896", prioridad: "media", grupo: "citas confirmadas" },
+  cambio_solicitado: { tipo: "cambio_solicitado", label: "Paciente pide reprogramar", color: "#F59E0B", prioridad: "alta", grupo: "cambios solicitados" },
   cumpleanos: { tipo: "cumpleanos", label: "Cumpleaños de paciente", color: "#C9A84C", prioridad: "baja", accion: "recordatorio_wa", grupo: "cumpleaños de hoy" },
   ncf_agotandose: { tipo: "ncf_agotandose", label: "NCF por agotarse", color: "#F59E0B", prioridad: "media", grupo: "secuencias NCF" },
 };

@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { ActiveUser } from "@/lib/auth";
 import { getPendingBudgetAmount } from "@/lib/budgets";
+import { getPendingTodayCount } from "@/lib/communications";
 import { pctChange } from "@/lib/utils";
 
 export type AppointmentEstado =
@@ -48,6 +49,7 @@ export interface DashboardData {
     tratamientosPendientes: number;
     pacientesActivos: number;
     presupuestosPendientes: number | null;
+    mensajesHoy: number | null;
   };
   citasHoy: CitaHoy[];
   proximas: ProximaCita[];
@@ -65,6 +67,7 @@ const EMPTY: DashboardData = {
     tratamientosPendientes: 0,
     pacientesActivos: 0,
     presupuestosPendientes: null,
+    mensajesHoy: null,
   },
   citasHoy: [],
   proximas: [],
@@ -151,8 +154,9 @@ export async function getDashboardData(
     let ingresosMes: number | null = null;
     let ingresosMesTrend: number | null = null;
     let presupuestosPendientes: number | null = null;
+    let mensajesHoy: number | null = null;
     if (canSeeIncome) {
-      const [thisMonth, lastMonth, budgetPending] = await Promise.all([
+      const [thisMonth, lastMonth, budgetPending, msgHoy] = await Promise.all([
         supabase
           .from("invoices")
           .select("monto")
@@ -165,12 +169,14 @@ export async function getDashboardData(
           .gte("fecha", prevMonthStart)
           .lt("fecha", monthStart),
         getPendingBudgetAmount(),
+        getPendingTodayCount(),
       ]);
       const sum = (rows: { monto: number }[] | null) =>
         (rows ?? []).reduce((a, r) => a + Number(r.monto), 0);
       ingresosMes = sum(thisMonth.data);
       ingresosMesTrend = pctChange(ingresosMes, sum(lastMonth.data));
       presupuestosPendientes = budgetPending;
+      mensajesHoy = msgHoy;
     }
 
     const pacientesMes = pacientesMesRes.count ?? 0;
@@ -222,6 +228,7 @@ export async function getDashboardData(
         tratamientosPendientes: pendientesRes.count ?? 0,
         pacientesActivos: pacientesActivosRes.count ?? 0,
         presupuestosPendientes,
+        mensajesHoy,
       },
       citasHoy,
       proximas,

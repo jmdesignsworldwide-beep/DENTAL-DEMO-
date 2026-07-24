@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/activity";
 import { rateLimit } from "@/lib/rate-limit";
 import { timeToMinutes } from "@/lib/dates";
+import { scheduleAppointmentReminders } from "@/lib/comm-engine";
 import { ESTADO_CITA, type CitaEstado } from "./estado-config";
 
 const WRITE_ROLES = ["owner", "recepcionista", "dentista"] as const;
@@ -133,7 +134,17 @@ export async function createAppointment(
     entity: "appointment",
     entityId: data.id,
   });
+
+  // Motor de comunicación: programa confirmación + recordatorios 24h/2h.
+  // Best-effort: no bloquea la creación de la cita si algo falla (opt-out, etc.).
+  try {
+    await scheduleAppointmentReminders(data.id as string);
+  } catch {
+    /* el recordatorio se puede programar luego desde Comunicaciones */
+  }
+
   revalidatePath("/citas");
+  revalidatePath("/comunicaciones");
   return { ok: true };
 }
 
