@@ -7,9 +7,11 @@ import { getPendingTodayCount } from "@/lib/communications";
 import { pctChange } from "@/lib/utils";
 
 export type AppointmentEstado =
+  | "pendiente"
   | "confirmada"
   | "sala_espera"
   | "en_sillon"
+  | "seguimiento"
   | "completada"
   | "cancelada"
   | "no_show";

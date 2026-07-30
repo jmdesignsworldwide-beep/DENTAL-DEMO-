@@ -150,10 +150,14 @@ export function OdontogramChart({
   const xsSup = positions(superior.length);
   const xsInf = positions(inferior.length);
   const totalW = Math.max(...xsSup, ...xsInf) + CELL_W;
-  const svgH = ROW_H * 2 + 40;
-  const upperY = 14;
-  const lowerY = ROW_H + 30;
-  const midY = ROW_H + 22;
+  // Espacio extra arriba y abajo para las etiquetas de cuadrante, que ya NO
+  // se solapan con los números FDI de la fila inferior.
+  const svgH = ROW_H * 2 + 72;
+  const upperY = 30;
+  const lowerY = ROW_H + 46;
+  const midY = ROW_H + 38;
+  const labelTopY = 12;
+  const labelBotY = svgH - 6;
   const centerX =
     (xsSup[superior.length / 2 - 1] + CELL_W + xsSup[superior.length / 2]) / 2;
 
@@ -162,12 +166,16 @@ export function OdontogramChart({
   return (
     <div
       ref={wrapRef}
-      className="relative overflow-x-auto rounded-2xl border border-border bg-surface p-4 dark:bg-surface/80"
+      className="relative rounded-2xl border border-border bg-surface p-4 dark:bg-surface/80"
       onMouseMove={(e) => {
         const r = wrapRef.current?.getBoundingClientRect();
         if (r) setMouse({ x: e.clientX - r.left, y: e.clientY - r.top });
       }}
+      onMouseLeave={() => setHover(null)}
     >
+      {/* El scroll horizontal vive en un contenedor interno para que el
+          tooltip (en el div externo) nunca quede recortado. */}
+      <div className="overflow-x-auto">
       <svg
         viewBox={`-10 0 ${totalW + 20} ${svgH}`}
         className="mx-auto block"
@@ -177,12 +185,18 @@ export function OdontogramChart({
         <line x1={centerX} y1={6} x2={centerX} y2={svgH - 6} stroke="currentColor" className="text-border" strokeWidth={1} />
         <line x1={-10} y1={midY} x2={totalW + 10} y2={midY} stroke="currentColor" className="text-border" strokeWidth={1} />
 
-        {/* Etiquetas de cuadrante */}
-        <text x={centerX / 2} y={svgH - 2} textAnchor="middle" className="fill-muted/60 text-[8px] font-bold uppercase tracking-wider">
+        {/* Etiquetas de cuadrante: Superior arriba, Inferior abajo. */}
+        <text x={centerX / 2} y={labelTopY} textAnchor="middle" className="fill-muted/60 text-[8px] font-bold uppercase tracking-wider">
           {denticion === "adulto" ? "Superior derecho" : "Sup. der."}
         </text>
-        <text x={centerX + (totalW - centerX) / 2} y={svgH - 2} textAnchor="middle" className="fill-muted/60 text-[8px] font-bold uppercase tracking-wider">
+        <text x={centerX + (totalW - centerX) / 2} y={labelTopY} textAnchor="middle" className="fill-muted/60 text-[8px] font-bold uppercase tracking-wider">
           {denticion === "adulto" ? "Superior izquierdo" : "Sup. izq."}
+        </text>
+        <text x={centerX / 2} y={labelBotY} textAnchor="middle" className="fill-muted/60 text-[8px] font-bold uppercase tracking-wider">
+          {denticion === "adulto" ? "Inferior derecho" : "Inf. der."}
+        </text>
+        <text x={centerX + (totalW - centerX) / 2} y={labelBotY} textAnchor="middle" className="fill-muted/60 text-[8px] font-bold uppercase tracking-wider">
+          {denticion === "adulto" ? "Inferior izquierdo" : "Inf. izq."}
         </text>
 
         {superior.map((fdi, i) => (
@@ -214,14 +228,15 @@ export function OdontogramChart({
           />
         ))}
       </svg>
+      </div>
 
       {/* Tooltip flotante */}
       {hover != null && (
         <div
           className="pointer-events-none absolute z-20 w-56 rounded-xl border border-border bg-surface p-3 shadow-card-hover"
           style={{
-            left: Math.min(mouse.x + 14, (wrapRef.current?.clientWidth ?? 300) - 230),
-            top: mouse.y + 14,
+            left: Math.max(8, Math.min(mouse.x + 14, (wrapRef.current?.clientWidth ?? 300) - 236)),
+            top: Math.min(mouse.y + 14, (wrapRef.current?.clientHeight ?? 300) - 92),
           }}
         >
           <div className="flex items-center justify-between">
