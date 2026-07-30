@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatHora } from "@/lib/utils";
 import type { CitaHoy } from "@/lib/dashboard";
-import { ESTADO } from "./estado-config";
+import { ESTADO, ESTADO_DEFAULT } from "./estado-config";
 
 export function AppointmentBand({ citas }: { citas: CitaHoy[] }) {
   const router = useRouter();
@@ -26,7 +26,7 @@ export function AppointmentBand({ citas }: { citas: CitaHoy[] }) {
   return (
     <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 no-scrollbar sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3 xl:grid-cols-4">
       {citas.map((c) => {
-        const st = ESTADO[c.estado];
+        const st = ESTADO[c.estado] ?? ESTADO_DEFAULT;
         return (
           <button
             key={c.id}
